@@ -25,7 +25,7 @@ describe('LineageAutomationFramework', () => {
   describe('mapToPipeline', () => {
     test('should map claims files correctly', () => {
       const result = framework.mapToPipeline('claims_2024_07_25.csv');
-
+      
       assert.strictEqual(result.pipelineName, 'transform_claims_pipeline');
       assert.strictEqual(result.destinationTable, 'processed_claims');
       assert.strictEqual(result.transformationType, 'standardization_and_validation');
@@ -34,9 +34,9 @@ describe('LineageAutomationFramework', () => {
     test('should map providers files correctly', () => {
       const result = framework.mapToPipeline('providers_2024_07_25.csv');
       
-      // Add assertions for providers mapping
-      assert(result !== null);
-      // Add specific assertions based on your expected provider pipeline mapping
+      assert.strictEqual(result.pipelineName, 'transform_providers_pipeline');
+      assert.strictEqual(result.destinationTable, 'processed_providers');
+      assert.strictEqual(result.transformationType, 'deduplication_and_enrichment');
     });
 
     test('should return null for unknown file patterns', () => {
@@ -73,7 +73,7 @@ describe('LineageAutomationFramework', () => {
     test('should generate valid GUID format', () => {
       const guid = framework.generateGuid();
       const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
+      
       assert.match(guid, guidRegex);
     });
 
