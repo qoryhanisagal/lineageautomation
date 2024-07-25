@@ -4,8 +4,8 @@
 // Purpose: Auto-generate and register lineage relationships in Purview
 // ===================================================================
 
-const axios = require('axios');
-const path = require('path');
+import axios from 'axios';
+import path from 'path';
 
 // Configuration - Replace with actual values
 const CONFIG = {
@@ -311,8 +311,8 @@ async function main() {
 }
 
 // Run the demo
-if (require.main === module) {
+if (import.meta.url === new URL(process.argv[1], 'file:').href) {
     main().catch(console.error);
 }
 
-module.exports = LineageAutomationFramework;
+export default LineageAutomationFramework;
