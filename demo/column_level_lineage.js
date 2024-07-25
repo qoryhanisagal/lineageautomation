@@ -14,7 +14,7 @@ class ColumnLevelLineageTracker {
     }
 
     /**
-     * Simulate Kevin's scenario: Engineer looking at SQL table column
+     * Simulate enterprise scenario: Engineer looking at SQL table column
      * "How do I know where this column came from and what happens if it changes?"
      */
     async simulateColumnImpactAnalysis(sqlTable, columnName) {
@@ -273,12 +273,12 @@ class ColumnLevelLineageTracker {
     }
 
     /**
-     * Simulate Kevin's engineer looking at SQL table scenario
+     * Simulate enterprise engineer investigation scenario
      */
     async simulateEngineerInvestigation() {
-        console.log('\n  KEVIN\'S AZURE SQL INVESTIGATION SIMULATION');
+        console.log('\n  AZURE SQL INVESTIGATION SIMULATION');
         console.log('═══════════════════════════════════════════');
-        console.log('Scenario: Kevin notices "claim_amount_usd" column in Azure SQL table values look different');
+        console.log('Scenario: Engineer notices "claim_amount_usd" column in Azure SQL table values look different');
         console.log('Question: "Where does this Azure SQL column come from and what changed?"\n');
         
         const investigation = {
@@ -377,7 +377,7 @@ class ColumnLevelLineageTracker {
 
 async function demonstrateColumnLevelLineage() {
     console.log('ENHANCED: Column-Level Lineage & Schema Drift Demo');
-    console.log('Advanced follow-up for Kevin - Enterprise Reality\n');
+    console.log('Advanced enterprise data governance demonstration\n');
 
     const framework = new ColumnLevelLineageTracker(CONFIG);
     
@@ -407,7 +407,7 @@ async function demonstrateColumnLevelLineage() {
     
     console.log(JSON.stringify(enhancedJSON, null, 2));
     
-    console.log('\n💡 Kevin\'s Question Answered:');
+    console.log('\n💡 Enterprise Questions Answered:');
     console.log('  ✅ Engineer can trace any column back to its source');
     console.log('  ✅ Schema changes are automatically detected and cataloged');
     console.log('  ✅ Downstream impact analysis shows affected systems');

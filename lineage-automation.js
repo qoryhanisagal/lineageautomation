@@ -250,7 +250,7 @@ class LineageAutomationFramework {
      * Demo method to show sample JSON output without API calls
      */
     demonstrateJSONGeneration() {
-        console.log('=== DEMO: JSON Generation for Kevin ===\n');
+        console.log('=== DEMO: JSON Generation ===\n');
         
         const sampleFile = {
             fileName: 'claims_2024_07_25.csv',
@@ -285,12 +285,12 @@ class LineageAutomationFramework {
 }
 
 // ===================================================================
-// DEMO EXECUTION - Perfect for Kevin's video walkthrough
+// DEMO EXECUTION - Enterprise demonstration
 // ===================================================================
 
 async function main() {
     console.log('JSON-Driven Lineage Automation Framework');
-    console.log('Follow-up demo for Kevin\n');
+    console.log('Interactive enterprise demo\n');
 
     const framework = new LineageAutomationFramework(CONFIG);
 

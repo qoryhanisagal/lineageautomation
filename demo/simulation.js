@@ -1,6 +1,6 @@
 // ===================================================================
 // Frontend Simulation Logic for Lineage Automation Framework
-// Perfect for live demo with Kevin
+// Professional enterprise demonstration platform
 // ===================================================================
 
 class LineageSimulation {

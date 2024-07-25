@@ -1,6 +1,6 @@
 // ===================================================================
 // Mock Data for Lineage Automation Framework Demo
-// Realistic sample data for Kevin's demonstration
+// Realistic sample data for enterprise demonstration
 // ===================================================================
 
 window.mockData = {
