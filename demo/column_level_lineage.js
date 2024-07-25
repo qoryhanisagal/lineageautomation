@@ -6,9 +6,9 @@
 /**
  * Enhanced framework that tracks column-level changes and lineage
  */
-class ColumnLevelLineageTracker extends LineageAutomationFramework {
-    constructor(config) {
-        super(config);
+class ColumnLevelLineageTracker {
+    constructor(config = {}) {
+        this.config = config;
         this.schemaHistory = new Map(); // Track schema versions over time
         this.columnMappings = new Map(); // Track column transformations
     }
@@ -38,36 +38,46 @@ class ColumnLevelLineageTracker extends LineageAutomationFramework {
      */
     async trackColumnTransformations(sourceFile, transformationConfig) {
         const columnMappings = {
-            // Source file columns → SQL table columns
+            // Source file columns → Azure SQL table columns
             mappings: [
                 {
                     sourceColumn: 'claim_id',
                     targetColumn: 'claim_identifier',
                     transformation: 'RENAME',
-                    businessRule: 'Standardize naming convention'
+                    businessRule: 'Standardize naming convention for Azure SQL',
+                    azureSqlDataType: 'VARCHAR(50)',
+                    azureSqlConstraints: 'PRIMARY KEY, NOT NULL'
                 },
                 {
                     sourceColumn: 'amount',
                     targetColumn: 'claim_amount_usd',
                     transformation: 'CURRENCY_CONVERSION',
-                    businessRule: 'Convert to USD with 2 decimal places'
+                    businessRule: 'Convert to USD with 2 decimal places in Azure SQL',
+                    azureSqlDataType: 'DECIMAL(10,2)',
+                    azureSqlConstraints: 'NOT NULL, CHECK (claim_amount_usd >= 0)'
                 },
                 {
                     sourceColumn: 'patient_id',
                     targetColumn: 'patient_reference_id',
                     transformation: 'ANONYMIZATION',
-                    businessRule: 'Apply privacy hash for HIPAA compliance'
+                    businessRule: 'Apply privacy hash for HIPAA compliance in Azure SQL',
+                    azureSqlDataType: 'VARCHAR(64)',
+                    azureSqlConstraints: 'NOT NULL, INDEX IX_patient_reference'
                 },
                 {
                     sourceColumn: 'provider_npi',
                     targetColumn: null, // Column removed
                     transformation: 'DEPRECATED',
-                    businessRule: 'Replaced by provider_id in v2.0 schema'
+                    businessRule: 'Replaced by provider_id in Azure SQL v2.0 schema',
+                    azureSqlDataType: null,
+                    azureSqlConstraints: null
                 }
             ],
             schemaVersion: '2.1',
             effectiveDate: new Date().toISOString(),
-            approvedBy: 'Data_Architecture_Team'
+            approvedBy: 'Data_Architecture_Team',
+            azureSqlDatabase: 'ClaimsDB',
+            azureSqlServer: 'healthcare-sql-server.database.windows.net'
         };
 
         // Store column mappings for lineage tracking
@@ -180,36 +190,45 @@ class ColumnLevelLineageTracker extends LineageAutomationFramework {
                 type: 'BI_REPORT',
                 impact: 'HIGH',
                 affectedVisuals: ['Claims by Amount', 'Patient Analysis'],
-                requiredActions: ['Update data model', 'Refresh semantic layer']
+                requiredActions: ['Update Azure SQL data source', 'Refresh DirectQuery model'],
+                azureService: 'Power BI Premium',
+                connectionType: 'DirectQuery to Azure SQL'
             },
             {
                 system: 'Tableau Executive Reports', 
                 type: 'BI_REPORT',
                 impact: 'MEDIUM',
                 affectedVisuals: ['Executive Summary'],
-                requiredActions: ['Update calculated fields']
+                requiredActions: ['Update Azure SQL connection', 'Modify calculated fields'],
+                azureService: 'Tableau Server',
+                connectionType: 'Live connection to Azure SQL'
             },
             {
                 system: 'Claims Processing API',
                 type: 'APPLICATION',
                 impact: 'HIGH',
                 affectedEndpoints: ['/api/claims/search', '/api/claims/validate'],
-                requiredActions: ['Update data contracts', 'Modify query logic']
+                requiredActions: ['Update Entity Framework models', 'Modify LINQ queries'],
+                azureService: 'Azure App Service',
+                connectionType: 'Entity Framework to Azure SQL'
             },
             {
-                system: 'Data Science Model Training',
+                system: 'Azure ML Model Training',
                 type: 'ML_PIPELINE',
                 impact: 'CRITICAL',
                 affectedModels: ['Fraud Detection Model', 'Cost Prediction Model'],
-                requiredActions: ['Retrain models', 'Update feature engineering']
+                requiredActions: ['Update SQL queries in notebooks', 'Retrain models with new schema'],
+                azureService: 'Azure Machine Learning',
+                connectionType: 'Python SDK to Azure SQL'
             }
         ];
         
-        console.log('\n Systems Affected by Schema Changes:');
+        console.log('\n Azure SQL Systems Affected by Schema Changes:');
         affectedSystems.forEach(system => {
             console.log(`\n🎯 ${system.system}`);
             console.log(`   Impact Level: ${this.getImpactEmoji(system.impact)} ${system.impact}`);
-            console.log(`   Type: ${system.type}`);
+            console.log(`   Azure Service: ${system.azureService}`);
+            console.log(`   Connection Type: ${system.connectionType}`);
             console.log(`   Required Actions: ${system.requiredActions.join(', ')}`);
         });
         
@@ -257,12 +276,14 @@ class ColumnLevelLineageTracker extends LineageAutomationFramework {
      * Simulate Kevin's engineer looking at SQL table scenario
      */
     async simulateEngineerInvestigation() {
-        console.log('\n  ENGINEER INVESTIGATION SIMULATION');
+        console.log('\n  KEVIN\'S AZURE SQL INVESTIGATION SIMULATION');
         console.log('═══════════════════════════════════════════');
-        console.log('Scenario: Engineer notices "claim_amount_usd" column values look different');
-        console.log('Question: "Where does this column come from and what changed?"\n');
+        console.log('Scenario: Kevin notices "claim_amount_usd" column in Azure SQL table values look different');
+        console.log('Question: "Where does this Azure SQL column come from and what changed?"\n');
         
         const investigation = {
+            azureSqlServer: 'healthcare-sql-server.database.windows.net',
+            azureSqlDatabase: 'ClaimsDB',
             sqlTable: 'processed_claims',
             columnName: 'claim_amount_usd',
             engineerQuery: 'SELECT TOP 100 claim_amount_usd FROM processed_claims WHERE created_date > GETDATE()-7'
@@ -394,5 +415,6 @@ async function demonstrateColumnLevelLineage() {
     console.log('  ✅ Business rules and approval workflows are captured');
 }
 
-// Export for use in other modules
-export { ColumnLevelLineageTracker, demonstrateColumnLevelLineage };
+// Make available globally for browser use
+window.ColumnLevelLineageTracker = ColumnLevelLineageTracker;
+window.demonstrateColumnLevelLineage = demonstrateColumnLevelLineage;
