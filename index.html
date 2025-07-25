@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+
+<html lang="en" data-theme="corporate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON-Driven Lineage Automation Framework - Interactive Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, hsl(var(--p)) 0%, hsl(var(--s)) 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 5px hsl(var(--p)), 0 0 10px hsl(var(--p)), 0 0 15px hsl(var(--p)); }
+            to { box-shadow: 0 0 10px hsl(var(--p)), 0 0 20px hsl(var(--p)), 0 0 30px hsl(var(--p)); }
+        }
+    </style>
+</head>
+<body class="bg-base-100">
+    <!-- Clean Header -->
+    <div class="navbar gradient-bg text-base-100 shadow-2xl">
+        <div class="navbar-start">
+            <div class="dropdown">
+                <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a><i class="fas fa-home mr-2"></i>Dashboard</a></li>
+                    <li><a><i class="fas fa-cog mr-2"></i>Settings</a></li>
+                    <li><a><i class="fas fa-book mr-2"></i>Documentation</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="navbar-center">
+            <div class="flex items-center">
+                <div class="avatar placeholder mr-4">
+                    <div class="bg-base-100 text-primary rounded-full w-10">
+                        <i class="fas fa-project-diagram text-lg"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">
+                        Automated Lineage Framework
+                    </h1>
+                    <p class="text-xs opacity-80">Microsoft Purview Integration</p>
+                </div>
+            </div>
+        </div>
+        <div class="navbar-end">
+            <div class="flex items-center gap-3">
+                <div class="badge badge-success badge-sm">
+                    <div class="w-2 h-2 bg-current rounded-full animate-pulse mr-1"></div>
+                    Live
+                </div>
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                        <li><a><i class="fas fa-download mr-2"></i>Export Results</a></li>
+                        <li><a><i class="fas fa-share mr-2"></i>Share Demo</a></li>
+                        <li><a><i class="fas fa-cog mr-2"></i>Settings</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replace the Hero Section stats with this improved version -->
+    <div class="hero min-h-[40vh] bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 rounded-3xl mb-8">
+        <div class="hero-content text-center">
+            <div class="max-w-4xl">
+                <h1 class="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    JSON-Driven Lineage Automation
+                </h1>
+                <p class="py-6 text-lg text-base-content/80">
+                    Automated metadata pipeline registration for Microsoft Purview with intelligent schema mapping and real-time lineage tracking
+                </p>
+                
+                <!-- Enhanced Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                    <div class="stat bg-base-200 rounded-2xl shadow-lg">
+                        <div class="stat-figure text-primary">
+                            <i class="fas fa-file-csv text-3xl"></i>
+                        </div>
+                        <div class="stat-title">Files Ready</div>
+                        <div class="stat-value text-primary" id="heroFileCount">0</div>
+                        <div class="stat-desc">For processing</div>
+                    </div>
+                    
+                    <div class="stat bg-base-200 rounded-2xl shadow-lg">
+                        <div class="stat-figure text-success">
+                            <i class="fas fa-check-circle text-3xl"></i>
+                        </div>
+                        <div class="stat-title">Success Rate</div>
+                        <div class="stat-value text-success">100%</div>
+                        <div class="stat-desc">Reliable</div>
+                    </div>
+                    
+                    <div class="stat bg-base-200 rounded-2xl shadow-lg">
+                        <div class="stat-figure text-info">
+                            <i class="fas fa-clock text-3xl"></i>
+                        </div>
+                        <div class="stat-title">Avg. Time</div>
+                        <div class="stat-value text-info">2.3s</div>
+                        <div class="stat-desc">Per file</div>
+                    </div>
+                    
+                    <div class="stat bg-base-200 rounded-2xl shadow-lg">
+                        <div class="stat-figure text-secondary">
+                            <i class="fas fa-project-diagram text-3xl"></i>
+                        </div>
+                        <div class="stat-title">Lineage</div>
+                        <div class="stat-value text-secondary" id="lineageObjects">0</div>
+                        <div class="stat-desc">Entities</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replace the Automation Control Center with this improved version -->
+    <div class="card bg-gradient-to-br from-base-200 to-base-300 shadow-xl rounded-3xl mb-8">
+        <div class="card-body">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="avatar">
+                        <div class="w-16 rounded-full bg-primary">
+                            <div class="flex items-center justify-center h-full">
+                                <i class="fas fa-play-circle text-2xl text-primary-content"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="card-title text-2xl">Automation Control Center</h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="badge badge-lg" id="systemStatus">
+                                <i class="fas fa-circle text-success mr-2 animate-pulse"></i>
+                                System Ready
+                            </div>
+                            <div class="badge badge-lg badge-outline" id="connectionStatus">
+                                <i class="fas fa-link mr-2"></i>
+                                Connected to Purview
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-4">
+                    <!-- Auto Mode Toggle -->
+                    <div class="form-control">
+                        <label class="label cursor-pointer space-x-2">
+                            <span class="label-text font-medium">Auto Mode</span>
+                            <input type="checkbox" class="toggle toggle-primary" id="autoModeToggle" checked />
+                        </label>
+                    </div>
+                    
+                    <!-- Column Lineage Toggle -->
+                    <div class="form-control">
+                        <label class="label cursor-pointer space-x-2">
+                            <span class="label-text font-medium">Column Lineage</span>
+                            <input type="checkbox" class="toggle toggle-secondary" id="columnLineageToggle" />
+                        </label>
+                    </div>
+                    
+                    <!-- Start Button -->
+                    <button class="btn btn-primary btn-lg gap-2" id="startScan">
+                        <i class="fas fa-rocket"></i>
+                        <span class="font-bold">Start Automation</span>
+                    </button>
+
+                    <!-- Reset Button -->
+                    <button class="btn btn-ghost btn-sm" id="reset" title="Reset Demo">
+                        <i class="fas fa-undo mr-1"></i>
+                        Reset
+                    </button>
+                </div>
+            </div
+            
+            <!-- Progress Indicator -->
+            <div class="mt-6" id="progressIndicator" style="display: none;">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium">Processing...</span>
+                    <span class="text-sm font-medium" id="progressPercentage">0%</span>
+                </div>
+                <progress class="progress progress-primary w-full" value="0" max="100" id="progressBar"></progress>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Status Dashboard -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <!-- File Scanner Status -->
+        <div class="card bg-gradient-to-br from-info/10 to-info/20 shadow-2xl border border-info/30 hover:shadow-3xl transition-all rounded-3xl">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-lg">
+                        <div class="avatar placeholder mr-2">
+                            <div class="bg-info text-info-content rounded-full w-8">
+                                <i class="fas fa-folder-open text-sm"></i>
+                            </div>
+                        </div>
+                        Directory Scanner
+                    </h3>
+                    <div class="badge badge-info badge-outline">v2.1</div>
+                </div>
+                
+                <div id="scannerStatus" class="text-center py-6">
+                    <div class="loading loading-dots loading-lg hidden text-info" id="scannerLoading"></div>
+                    <div id="scannerReady" class="badge badge-outline badge-lg">Ready to Scan</div>
+                    <div id="scannerComplete" class="badge badge-success badge-lg hidden">
+                        <i class="fas fa-check mr-1"></i>
+                        Scan Complete
+                    </div>
+                </div>
+                
+                <div class="stats stats-vertical shadow-sm bg-base-100/50">
+                    <div class="stat">
+                        <div class="stat-title text-xs">Files Detected</div>
+                        <div class="stat-value text-2xl text-info" id="fileCount">0</div>
+                        <div class="stat-desc">New files found</div>
+                    </div>
+                </div>
+                
+                <div id="filesFound" class="text-center text-sm text-base-content/70 hidden mt-2">
+                    <span id="fileCountText">0</span> new files detected
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON Generator Status -->
+        <div class="card bg-gradient-to-br from-warning/10 to-warning/20 shadow-2xl border border-warning/30 hover:shadow-3xl transition-all rounded-3xl">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-lg">
+                        <div class="avatar placeholder mr-2">
+                            <div class="bg-warning text-warning-content rounded-full w-8">
+                                <i class="fas fa-cogs text-sm"></i>
+                            </div>
+                        </div>
+                        JSON Generator
+                    </h3>
+                    <div class="badge badge-warning badge-outline">Auto</div>
+                </div>
+                
+                <div id="generatorStatus" class="text-center py-6">
+                    <div class="loading loading-ring loading-lg hidden text-warning" id="generatorLoading"></div>
+                    <div id="generatorReady" class="badge badge-outline badge-lg">Waiting for Files</div>
+                    <div id="generatorComplete" class="badge badge-success badge-lg hidden">
+                        <i class="fas fa-check mr-1"></i>
+                        JSON Generated
+                    </div>
+                </div>
+                
+                <div class="stats stats-vertical shadow-sm bg-base-100/50">
+                    <div class="stat">
+                        <div class="stat-title text-xs">Entities Created</div>
+                        <div class="stat-value text-2xl text-warning" id="entityCount">0</div>
+                        <div class="stat-desc">Lineage objects</div>
+                    </div>
+                </div>
+                
+                <div id="entitiesGenerated" class="text-center text-sm text-base-content/70 hidden mt-2">
+                    <span id="entityCountText">0</span> entities created
+                </div>
+            </div>
+        </div>
+
+        <!-- Purview Registration Status -->
+        <div class="card bg-gradient-to-br from-primary/10 to-primary/20 shadow-2xl border border-primary/30 hover:shadow-3xl transition-all rounded-3xl">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-lg">
+                        <div class="avatar placeholder mr-2">
+                            <div class="bg-primary text-primary-content rounded-full w-8">
+                                <i class="fas fa-cloud text-sm"></i>
+                            </div>
+                        </div>
+                        Purview API
+                    </h3>
+                    <div class="badge badge-primary badge-outline">Live</div>
+                </div>
+                
+                <div id="purviewStatus" class="text-center py-6">
+                    <div class="loading loading-spinner loading-lg hidden text-primary" id="purviewLoading"></div>
+                    <div id="purviewReady" class="badge badge-outline badge-lg">Ready to Register</div>
+                    <div id="purviewComplete" class="badge badge-success badge-lg hidden">
+                        <i class="fas fa-check mr-1"></i>
+                        Lineage Registered
+                    </div>
+                </div>
+                
+                <div class="stats stats-vertical shadow-sm bg-base-100/50">
+                    <div class="stat">
+                        <div class="stat-title text-xs">API Status</div>
+                        <div class="stat-value text-xl text-primary" id="apiStatus">Ready</div>
+                        <div class="stat-desc">Connection active</div>
+                    </div>
+                </div>
+                
+                <div id="lineageRegistered" class="text-center text-sm text-base-content/70 hidden mt-2">
+                    Status: <span id="registrationStatus">200 OK</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Activity Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Live Activity Feed -->
+        <div class="card bg-gradient-to-br from-success/5 to-success/10 shadow-2xl border border-success/20 rounded-3xl">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-xl">
+                        <div class="avatar placeholder mr-3">
+                            <div class="bg-success text-success-content rounded-full w-10">
+                                <i class="fas fa-list-alt"></i>
+                            </div>
+                        </div>
+                        Live Activity Feed
+                    </h3>
+                    <div class="flex gap-2">
+                        <div class="badge badge-success badge-sm">
+                            <div class="w-2 h-2 bg-current rounded-full animate-pulse mr-1"></div>
+                            Live
+                        </div>
+                        <button class="btn btn-ghost btn-xs" onclick="document.getElementById('activityLog').innerHTML = ''">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-base-300 rounded-xl p-4 shadow-inner border border-base-content/10">
+                    <div id="activityLog" class="h-72 overflow-y-auto font-mono text-sm space-y-1">
+                        <div class="flex items-center text-success mb-2 opacity-75">
+                            <i class="fas fa-terminal mr-2"></i>
+                            <span>System ready - waiting for automation to start...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center mt-4 text-xs text-base-content/60">
+                    <span>Real-time logging enabled</span>
+                    <span id="activityTimestamp">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced File Discovery -->
+        <div class="card bg-gradient-to-br from-info/5 to-info/10 shadow-2xl border border-info/20 rounded-3xl">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-xl">
+                        <div class="avatar placeholder mr-3">
+                            <div class="bg-info text-info-content rounded-full w-10">
+                                <i class="fas fa-file-csv"></i>
+                            </div>
+                        </div>
+                        Discovered Files
+                    </h3>
+                    <div class="stats stats-horizontal stats-sm shadow">
+                        <div class="stat">
+                            <div class="stat-title text-xs">Total</div>
+                            <div class="stat-value text-sm" id="totalFiles">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="h-72 overflow-y-auto bg-base-100 rounded-2xl p-4 border border-base-300">
+                    <div id="fileList" class="space-y-3">
+                        <div class="flex flex-col items-center justify-center h-full text-base-content/50">
+                            <i class="fas fa-folder-open text-4xl mb-3 opacity-30"></i>
+                            <p class="text-center">No files scanned yet</p>
+                            <p class="text-xs text-center mt-1">Click 'Start Scan' to discover files</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center mt-4">
+                    <div class="flex gap-2">
+                        <div class="badge badge-info badge-outline badge-xs">CSV</div>
+                        <div class="badge badge-warning badge-outline badge-xs">JSON</div>
+                        <div class="badge badge-error badge-outline badge-xs">XML</div>
+                    </div>
+                    <span class="text-xs text-base-content/60">Supported formats</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced JSON Payload Viewer -->
+    <div class="card bg-gradient-to-br from-secondary/5 to-secondary/10 shadow-2xl mt-8 border border-secondary/20 rounded-3xl" id="jsonViewer" style="display: none;">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="card-title text-2xl">
+                    <div class="avatar placeholder mr-3">
+                        <div class="bg-secondary text-secondary-content rounded-full w-12">
+                            <i class="fas fa-code"></i>
+                        </div>
+                    </div>
+                    Generated JSON Payload
+                </h3>
+                <div class="flex gap-2">
+                    <div class="badge badge-secondary badge-lg">
+                        <i class="fas fa-check mr-1"></i>
+                        Valid JSON
+                    </div>
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                            <li><a id="validateJSON"><i class="fas fa-check-circle mr-2"></i>Validate JSON</a></li>
+                            <li><a id="formatJSON"><i class="fas fa-align-left mr-2"></i>Format JSON</a></li>
+                            <li><a id="minifyJSON"><i class="fas fa-compress mr-2"></i>Minify JSON</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mockup-window border border-base-300 bg-base-200">
+                <div class="bg-base-100 border-t border-base-300">
+                    <div class="navbar bg-base-200 min-h-8">
+                        <div class="navbar-start">
+                            <div class="text-xs text-base-content/60">lineage-payload.json</div>
+                        </div>
+                        <div class="navbar-end">
+                            <div class="text-xs text-success" id="jsonSize">0 bytes</div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <pre id="jsonPayload" class="text-sm overflow-x-auto max-h-96 bg-neutral text-neutral-content p-4 rounded-lg"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-actions justify-between mt-6">
+                <div class="flex gap-2">
+                    <div class="badge badge-outline">Entities: <span id="jsonEntityCount">0</span></div>
+                    <div class="badge badge-outline">Size: <span id="jsonPayloadSize">0 KB</span></div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="downloadJSON" class="btn btn-outline btn-sm">
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                    <button id="copyJSON" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-copy mr-2"></i>
+                        Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced API Response Viewer -->
+    <div class="card bg-gradient-to-br from-accent/5 to-accent/10 shadow-2xl mt-6 border border-accent/20 rounded-3xl" id="responseViewer" style="display: none;">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="card-title text-2xl">
+                    <div class="avatar placeholder mr-3">
+                        <div class="bg-accent text-accent-content rounded-full w-12">
+                            <i class="fas fa-server"></i>
+                        </div>
+                    </div>
+                    Purview API Response
+                </h3>
+                <div class="flex gap-2">
+                    <div class="badge badge-success badge-lg" id="responseStatus">
+                        <i class="fas fa-check mr-1"></i>
+                        201 Created
+                    </div>
+                    <div class="badge badge-accent badge-outline" id="responseTime">
+                        <i class="fas fa-clock mr-1"></i>
+                        245ms
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mockup-browser border border-base-300 shadow-lg">
+                <div class="mockup-browser-toolbar">
+                    <div class="input bg-base-100 text-sm">
+                        <span class="text-success font-bold">POST</span>
+                        <span class="ml-2">https://your-purview.purview.azure.com/datamap/api/atlas/v2/entity/bulk</span>
+                    </div>
+                </div>
+                <div class="bg-base-200">
+                    <div class="tabs tabs-boxed bg-base-300 rounded-none">
+                        <a class="tab tab-active" id="responseTab">Response</a>
+                        <a class="tab" id="headersTab">Headers</a>
+                        <a class="tab" id="cookiesTab">Cookies</a>
+                    </div>
+                    <div class="p-6 bg-neutral text-neutral-content">
+                        <pre id="apiResponse" class="text-sm max-h-80 overflow-y-auto"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats stats-horizontal shadow-lg mt-6 bg-base-100">
+                <div class="stat">
+                    <div class="stat-title">Status Code</div>
+                    <div class="stat-value text-success" id="statusCode">201</div>
+                    <div class="stat-desc">Created</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Response Time</div>
+                    <div class="stat-value text-info" id="respTime">245</div>
+                    <div class="stat-desc">milliseconds</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Entities Created</div>
+                    <div class="stat-value text-accent" id="entitiesCreated">3</div>
+                    <div class="stat-desc">lineage objects</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Column Mapping Visualization (shown when column lineage is enabled) -->
+    <div class="card bg-gradient-to-br from-purple/5 to-purple/10 shadow-2xl border border-purple/20 rounded-3xl mb-8" id="columnMappingCard" style="display: none;">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="card-title text-xl">
+                    <div class="avatar placeholder mr-3">
+                        <div class="bg-purple text-purple-content rounded-full w-10">
+                            <i class="fas fa-columns"></i>
+                        </div>
+                    </div>
+                    Column-Level Lineage Mapping
+                </h3>
+                <div class="badge badge-purple badge-outline">Enhanced Mode</div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Source Column</th>
+                            <th>Transformation</th>
+                            <th>Target Column</th>
+                            <th>Business Rule</th>
+                            <th>Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="columnMappingTable">
+                        <tr>
+                            <td colspan="5" class="text-center text-base-content/50">
+                                No column mappings generated yet
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm text-base-content/60">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Column transformations are tracked through the entire pipeline
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="window.lineageSimulation.exportColumnMappings()">
+                    <i class="fas fa-download mr-1"></i>
+                    Export Mappings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Toast Container -->
+<div class="toast toast-end z-50" id="toastContainer"></div>
+
+<!-- Floating Action Button -->
+<div class="fixed bottom-6 right-6 z-40">
+    <div class="dropdown dropdown-top dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-2xl hover:scale-110 transition-all">
+            <i class="fas fa-question text-xl"></i>
+        </div>
+        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64 mb-2">
+            <li><a><i class="fas fa-play mr-2"></i>Quick Start Guide</a></li>
+            <li><a><i class="fas fa-book mr-2"></i>Documentation</a></li>
+            <li><a><i class="fas fa-bug mr-2"></i>Report Issue</a></li>
+            <li><a><i class="fas fa-envelope mr-2"></i>Contact Support</a></li>
+        </ul>
+    </div>
+</div>
+
+<script src="demo/mock-data.js"></script>
+<script src="demo/column_level_lineage.js"></script>
+<script src="demo/simulation.js"></script>
+
+</body>
+</html>

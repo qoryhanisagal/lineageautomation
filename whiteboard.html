@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="corporate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lineage Strategy Whiteboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, hsl(var(--p)) 0%, hsl(var(--s)) 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 5px hsl(var(--p)), 0 0 10px hsl(var(--p)), 0 0 15px hsl(var(--p)); }
+            to { box-shadow: 0 0 10px hsl(var(--p)), 0 0 20px hsl(var(--p)), 0 0 30px hsl(var(--p)); }
+        }
+        .drawing-canvas {
+            background: white;
+            border-radius: 1rem;
+            cursor: crosshair;
+        }
+        .tool-active {
+            background: hsl(var(--p)) !important;
+            color: hsl(var(--pc)) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-base-200 to-base-300">
+    <!-- Enhanced Header -->
+    <div class="navbar gradient-bg text-base-100 shadow-2xl">
+        <div class="navbar-start">
+            <div class="dropdown">
+                <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                    <i class="bi bi-list text-xl"></i>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a><i class="bi bi-save mr-2"></i>Save Board</a></li>
+                    <li><a><i class="bi bi-download mr-2"></i>Export</a></li>
+                    <li><a><i class="bi bi-share mr-2"></i>Share</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="navbar-center">
+            <div class="flex items-center">
+                <div class="avatar placeholder mr-3">
+                    <div class="bg-neutral text-neutral-content rounded-full w-12">
+                        <i class="bi bi-diagram-3 text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">
+                        Lineage Strategy Whiteboard
+                    </h1>
+                    <p class="text-sm opacity-90">Interactive Planning Board</p>
+                </div>
+            </div>
+        </div>
+        <div class="navbar-end">
+            <div class="flex gap-2">
+                <button class="btn btn-ghost btn-sm" id="saveBoard">
+                    <i class="bi bi-save"></i>
+                </button>
+                <button class="btn btn-ghost btn-sm" id="exportBoard">
+                    <i class="bi bi-download"></i>
+                </button>
+                <button class="btn btn-ghost btn-sm" id="shareBoard">
+                    <i class="bi bi-share"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-6 max-w-7xl">
+        <!-- Hero Section -->
+        <div class="hero bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl mb-8">
+            <div class="hero-content text-center py-12">
+                <div class="max-w-4xl">
+                    <div class="text-6xl mb-4">
+                        <i class="bi bi-magic text-primary"></i>
+                    </div>
+                    <h1 class="text-5xl font-bold mb-4">JSON-Driven Lineage Automation Framework</h1>
+                    <p class="text-xl opacity-80 mb-6">Dynamic Metadata Pipeline for Microsoft Purview Integration</p>
+                    <div class="badge badge-primary badge-lg pulse-glow">
+                        <i class="bi bi-rocket-takeoff mr-2"></i>
+                        Ready for Presentation
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawing Toolbar -->
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <h3 class="card-title">
+                        <i class="bi bi-palette text-primary mr-2"></i>
+                        Drawing Tools
+                    </h3>
+                    <div class="flex gap-2">
+                        <button class="btn btn-outline btn-sm tool-btn" data-tool="pen" id="penTool">
+                            <i class="bi bi-pen"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm tool-btn" data-tool="highlighter" id="highlighterTool">
+                            <i class="bi bi-highlighter"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm tool-btn" data-tool="eraser" id="eraserTool">
+                            <i class="bi bi-eraser"></i>
+                        </button>
+                        <div class="divider divider-horizontal"></div>
+                        <input type="color" value="#3b82f6" class="w-8 h-8 rounded border-2" id="colorPicker">
+                        <input type="range" min="1" max="20" value="3" class="range range-xs range-primary w-20" id="sizeSlider">
+                        <button class="btn btn-outline btn-sm" id="clearCanvas">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Drawing Canvas -->
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="bi bi-pencil-square text-secondary mr-2"></i>
+                    Interactive Whiteboard
+                </h3>
+                <canvas id="drawingCanvas" class="drawing-canvas w-full border-2 border-base-300" width="1200" height="600"></canvas>
+            </div>
+        </div>
+
+        <!-- Data Flow Visualization -->
+        <div class="card bg-gradient-to-br from-info/5 to-info/10 shadow-2xl mb-8 border border-info/20">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-6">
+                    <i class="bi bi-diagram-3 text-info mr-3"></i>
+                    Data Lineage Flow
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                    <!-- Source -->
+                    <div class="card bg-gradient-to-br from-success/10 to-success/20 shadow-lg border border-success/30">
+                        <div class="card-body text-center">
+                            <div class="text-6xl mb-4">
+                                <i class="bi bi-database text-success"></i>
+                            </div>
+                            <h3 class="card-title justify-center text-success">Source Blob</h3>
+                            <p class="text-sm opacity-80">CSV in ADLS Gen2</p>
+                            <p class="text-xs">Claims files from 3rd party</p>
+                            <div class="badge badge-success badge-outline mt-2">Input</div>
+                        </div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="flex justify-center">
+                        <div class="text-4xl text-primary animate-pulse">
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                    </div>
+
+                    <!-- Process -->
+                    <div class="card bg-gradient-to-br from-warning/10 to-warning/20 shadow-lg border border-warning/30">
+                        <div class="card-body text-center">
+                            <div class="text-6xl mb-4">
+                                <i class="bi bi-gear text-warning"></i>
+                            </div>
+                            <h3 class="card-title justify-center text-warning">Process Pipeline</h3>
+                            <p class="text-sm opacity-80">ADF/Synapse Pipeline</p>
+                            <p class="text-xs">Data transformation</p>
+                            <div class="badge badge-warning badge-outline mt-2">Transform</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row -->
+                <div class="flex justify-center my-6">
+                    <div class="text-4xl text-primary animate-pulse">
+                        <i class="bi bi-arrow-down"></i>
+                    </div>
+                </div>
+
+                <div class="flex justify-center">
+                    <div class="card bg-gradient-to-br from-primary/10 to-primary/20 shadow-lg border border-primary/30 max-w-md">
+                        <div class="card-body text-center">
+                            <div class="text-6xl mb-4">
+                                <i class="bi bi-table text-primary"></i>
+                            </div>
+                            <h3 class="card-title justify-center text-primary">Destination Table</h3>
+                            <p class="text-sm opacity-80">Azure SQL / Fabric</p>
+                            <p class="text-xs">Downstream consumption</p>
+                            <div class="badge badge-primary badge-outline mt-2">Output</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Goal Highlight -->
+        <div class="alert alert-warning shadow-lg mb-8">
+            <div>
+                <i class="bi bi-bullseye text-2xl"></i>
+                <div>
+                    <h3 class="font-bold text-lg">Core Goal</h3>
+                    <div class="text-sm">Auto-generate JSON payloads that register lineage relationships in Microsoft Purview</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON Structure -->
+        <div class="card bg-neutral text-neutral-content shadow-2xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-6">
+                    <i class="bi bi-code-slash text-accent mr-3"></i>
+                    Sample JSON Lineage Payload Structure
+                </h2>
+                
+                <div class="mockup-code">
+                    <pre data-prefix="1"><code>{</code></pre>
+                    <pre data-prefix="2"><code>  "entities": [</code></pre>
+                    <pre data-prefix="3"><code>    {</code></pre>
+                    <pre data-prefix="4"><code>      "typeName": "DataSet",</code></pre>
+                    <pre data-prefix="5"><code>      "attributes": {</code></pre>
+                    <pre data-prefix="6"><code>        "qualifiedName": "adls://container/claims_2024_07.csv",</code></pre>
+                    <pre data-prefix="7"><code>        "name": "Claims File July 2024",</code></pre>
+                    <pre data-prefix="8"><code>        "owner": "External_Provider"</code></pre>
+                    <pre data-prefix="9"><code>      }</code></pre>
+                    <pre data-prefix="10"><code>    },</code></pre>
+                    <pre data-prefix="11"><code>    {</code></pre>
+                    <pre data-prefix="12"><code>      "typeName": "Process",</code></pre>
+                    <pre data-prefix="13"><code>      "attributes": {</code></pre>
+                    <pre data-prefix="14"><code>        "qualifiedName": "adf://pipeline/transform_claims_pipeline",</code></pre>
+                    <pre data-prefix="15"><code>        "inputs": ["adls://container/claims_2024_07.csv"],</code></pre>
+                    <pre data-prefix="16"><code>        "outputs": ["sql://server/db/claims_table"]</code></pre>
+                    <pre data-prefix="17"><code>      }</code></pre>
+                    <pre data-prefix="18"><code>    }</code></pre>
+                    <pre data-prefix="19"><code>  ]</code></pre>
+                    <pre data-prefix="20"><code>}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automation Components -->
+        <div class="card gradient-bg text-base-100 shadow-2xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title text-2xl justify-center mb-6">
+                    <i class="bi bi-robot mr-3"></i>
+                    Dynamic Automation Components
+                </h2>
+                
+                <div class="flex flex-wrap justify-center gap-4 mb-6">
+                    <div class="badge badge-lg badge-neutral">
+                        <i class="bi bi-magic mr-2"></i>
+                        Power Automate
+                    </div>
+                    <div class="badge badge-lg badge-neutral">
+                        <i class="bi bi-api mr-2"></i>
+                        REST API
+                    </div>
+                    <div class="badge badge-lg badge-neutral">
+                        <i class="bi bi-code mr-2"></i>
+                        JSON Generator
+                    </div>
+                    <div class="badge badge-lg badge-neutral">
+                        <i class="bi bi-search mr-2"></i>
+                        Directory Scanner
+                    </div>
+                    <div class="badge badge-lg badge-neutral">
+                        <i class="bi bi-diagram-2 mr-2"></i>
+                        Schema Mapper
+                    </div>
+                </div>
+                
+                <div class="text-center text-lg font-semibold">
+                    <strong>Trigger:</strong> New file detected → Generate JSON → Register lineage → Update Purview
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="card bg-gradient-to-br from-success/10 to-success/20 shadow-lg border border-success/30">
+                <div class="card-body text-center">
+                    <div class="text-4xl mb-4">
+                        <i class="bi bi-arrow-repeat text-success"></i>
+                    </div>
+                    <h3 class="card-title justify-center text-success">Repeatable Registration</h3>
+                    <p class="text-sm">Handles schema changes and pipeline evolution automatically</p>
+                </div>
+            </div>
+            
+            <div class="card bg-gradient-to-br from-info/10 to-info/20 shadow-lg border border-info/30">
+                <div class="card-body text-center">
+                    <div class="text-4xl mb-4">
+                        <i class="bi bi-shield-check text-info"></i>
+                    </div>
+                    <h3 class="card-title justify-center text-info">Governance Coverage</h3>
+                    <p class="text-sm">Captures unplanned schema drift and maintains data quality</p>
+                </div>
+            </div>
+            
+            <div class="card bg-gradient-to-br from-warning/10 to-warning/20 shadow-lg border border-warning/30">
+                <div class="card-body text-center">
+                    <div class="text-4xl mb-4">
+                        <i class="bi bi-graph-up text-warning"></i>
+                    </div>
+                    <h3 class="card-title justify-center text-warning">Impact Analysis</h3>
+                    <p class="text-sm">Visual lineage tracking through Purview UI for better insights</p>
+                </div>
+            </div>
+            
+            <div class="card bg-gradient-to-br from-secondary/10 to-secondary/20 shadow-lg border border-secondary/30">
+                <div class="card-body text-center">
+                    <div class="text-4xl mb-4">
+                        <i class="bi bi-tags text-secondary"></i>
+                    </div>
+                    <h3 class="card-title justify-center text-secondary">Semantic Integration</h3>
+                    <p class="text-sm">Column-level traceability with business glossary alignment</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Implementation Notes -->
+        <div class="card bg-gradient-to-r from-accent/10 to-accent/20 shadow-2xl mb-8 border border-accent/20">
+            <div class="card-body">
+                <h3 class="card-title text-xl mb-4">
+                    <i class="bi bi-lightbulb text-accent mr-3"></i>
+                    Key Implementation Notes
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-center p-3 bg-base-100/50 rounded-lg">
+                        <i class="bi bi-check-circle text-success mr-3"></i>
+                        <span>Use Apache Atlas API for Purview integration</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-base-100/50 rounded-lg">
+                        <i class="bi bi-lock text-warning mr-3"></i>
+                        <span>Implement secure auth tokens and proper headers</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-base-100/50 rounded-lg">
+                        <i class="bi bi-git text-info mr-3"></i>
+                        <span>Handle schema drift with dynamic JSON generation</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-base-100/50 rounded-lg">
+                        <i class="bi bi-zoom-in text-primary mr-3"></i>
+                        <span>Enable column-level lineage for granular tracking</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ready for Presentation -->
+        <div class="card bg-gradient-to-r from-primary to-secondary text-base-100 shadow-2xl">
+            <div class="card-body text-center">
+                <div class="text-6xl mb-4">
+                    <i class="bi bi-camera-video"></i>
+                </div>
+                <h3 class="card-title justify-center text-2xl mb-4">Ready for Video Walkthrough</h3>
+                <p class="text-lg opacity-90 max-w-4xl mx-auto">
+                    This interactive whiteboard provides the visual foundation for your presentation, 
+                    demonstrating how the JSON-driven approach scales metadata management across the entire data journey.
+                </p>
+                <div class="card-actions justify-center mt-6">
+                    <button class="btn btn-neutral btn-lg">
+                        <i class="bi bi-play mr-2"></i>
+                        Start Recording
+                    </button>
+                    <button class="btn btn-outline btn-lg">
+                        <i class="bi bi-download mr-2"></i>
+                        Export Slides
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-6 right-6 z-40">
+        <div class="dropdown dropdown-top dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-2xl hover:scale-110 transition-all">
+                <i class="bi bi-tools text-xl"></i>
+            </div>
+            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64 mb-2">
+                <li><a id="fullscreenBtn"><i class="bi bi-fullscreen mr-2"></i>Fullscreen Mode</a></li>
+                <li><a id="presentationMode"><i class="bi bi-display mr-2"></i>Presentation Mode</a></li>
+                <li><a><i class="bi bi-printer mr-2"></i>Print Whiteboard</a></li>
+                <li><a><i class="bi bi-share mr-2"></i>Share Link</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Canvas Drawing Functionality
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const clearBtn = document.getElementById('clearCanvas');
+        const toolBtns = document.querySelectorAll('.tool-btn');
+        
+        let isDrawing = false;
+        let currentTool = 'pen';
+        let currentColor = '#3b82f6';
+        let currentSize = 3;
+        
+        // Set canvas size
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        // Tool selection
+        toolBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                toolBtns.forEach(b => b.classList.remove('tool-active'));
+                this.classList.add('tool-active');
+                currentTool = this.dataset.tool;
+                
+                if (currentTool === 'eraser') {
+                    canvas.style.cursor = 'grab';
+                } else {
+                    canvas.style.cursor = 'crosshair';
+                }
+            });
+        });
+        
+        // Color and size controls
+        colorPicker.addEventListener('change', (e) => {
+            currentColor = e.target.value;
+        });
+        
+        sizeSlider.addEventListener('input', (e) => {
+            currentSize = e.target.value;
+        });
+        
+        // Drawing functions
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.lineWidth = currentSize;
+            ctx.lineCap = 'round';
+            
+            if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = currentColor;
+                
+                if (currentTool === 'highlighter') {
+                    ctx.globalAlpha = 0.3;
+                } else {
+                    ctx.globalAlpha = 1;
+                }
+            }
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+        
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.beginPath();
+            }
+        }
+        
+        // Canvas event listeners
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Clear canvas
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+        
+        // Fullscreen functionality
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        
+        // Initialize first tool
+        document.getElementById('penTool').classList.add('tool-active');
+    </script>
+</body>
+</html>

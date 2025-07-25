@@ -1,0 +1,25 @@
+{
+  "name": "json-driven-lineage-automation",
+  "version": "1.0.0",
+  "description": "Dynamic metadata pipeline and auto-registration framework for Microsoft Purview lineage",
+  "main": "lineage-automation.js",
+  "type": "module",
+  "scripts": {
+    "start": "node lineage-automation.js",
+    "demo": "node -e \"console.log('Open index.html in your browser for the live demo')\"",
+    "test": "node --test tests/*.test.js"
+  },
+  "keywords": [
+    "microsoft-purview",
+    "data-lineage",
+    "metadata-automation"
+  ],
+  "author": "Koiree (Sequoyah Dozier)",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "@azure/storage-blob": "^12.17.0",
+    "@azure/identity": "^4.0.1"
+  }
+}

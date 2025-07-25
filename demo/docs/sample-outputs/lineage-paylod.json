@@ -1,0 +1,153 @@
+{
+"entities": [
+{
+"typeName": "DataSet",
+"attributes": {
+"qualifiedName": "adls://claimsdata/incoming/claims_2024_07_25.csv",
+"name": "claims_2024_07_25.csv",
+"description": "Source file for standardization_and_validation",
+"owner": "External_Data_Provider",
+"createTime": "2024-07-25T08:15:30Z",
+"fileSize": 2847392,
+"format": "CSV",
+"schema": [
+"claim_id",
+"patient_id",
+"provider_id",
+"service_date",
+"diagnosis_code",
+"procedure_code",
+"claim_amount",
+"insurance_type",
+"status"
+],
+"dataClassification": "Internal",
+"sourceSystem": "Healthcare_Claims_Platform"
+},
+"guid": "550e8400-e29b-41d4-a716-446655440001",
+"status": "ACTIVE",
+"createdBy": "lineage-automation-framework",
+"createTime": 1721894130000,
+"updatedBy": "lineage-automation-framework",
+"updateTime": 1721894130000
+},
+{
+"typeName": "Process",
+"attributes": {
+"qualifiedName": "adf://pipelines/transform_claims_pipeline",
+"name": "transform_claims_pipeline",
+"description": "Automated standardization_and_validation process for healthcare claims data",
+"processType": "ETL_PIPELINE",
+"inputs": [
+"adls://claimsdata/incoming/claims_2024_07_25.csv"
+],
+"outputs": [
+"sql://healthcare-sql-server.database.windows.net/ClaimsDB/dbo/processed_claims"
+],
+"createTime": "2024-07-25T08:15:30Z",
+"transformationSteps": [
+"Data validation and cleansing",
+"Diagnosis code standardization",
+"Amount calculations and verification",
+"Duplicate detection and removal",
+"Final quality checks"
+],
+"estimatedRuntime": "12-15 minutes",
+"dataFlowEngine": "Azure_Data_Factory",
+"pipelineOwner": "Data_Engineering_Team"
+},
+"guid": "550e8400-e29b-41d4-a716-446655440002",
+"status": "ACTIVE",
+"createdBy": "lineage-automation-framework",
+"createTime": 1721894130000,
+"updatedBy": "lineage-automation-framework",
+"updateTime": 1721894130000
+},
+{
+"typeName": "Table",
+"attributes": {
+"qualifiedName": "sql://healthcare-sql-server.database.windows.net/ClaimsDB/dbo/processed_claims",
+"name": "processed_claims",
+"description": "Processed and validated healthcare claims data from claims_2024_07_25.csv",
+"schema": "dbo",
+"tableType": "MANAGED_TABLE",
+"createTime": "2024-07-25T08:15:30Z",
+"columns": [
+{
+"name": "claim_id",
+"dataType": "varchar(50)",
+"isPrimaryKey": true,
+"description": "Unique identifier for each claim"
+},
+{
+"name": "patient_id",
+"dataType": "varchar(50)",
+"description": "Patient identifier (anonymized)"
+},
+{
+"name": "provider_id",
+"dataType": "varchar(50)",
+"description": "Healthcare provider identifier"
+},
+{
+"name": "service_date",
+"dataType": "date",
+"description": "Date when service was provided"
+},
+{
+"name": "diagnosis_code",
+"dataType": "varchar(10)",
+"description": "ICD-10 diagnosis code"
+},
+{
+"name": "procedure_code",
+"dataType": "varchar(10)",
+"description": "CPT procedure code"
+},
+{
+"name": "claim_amount",
+"dataType": "decimal(10,2)",
+"description": "Total claim amount in USD"
+},
+{
+"name": "insurance_type",
+"dataType": "varchar(50)",
+"description": "Type of insurance coverage"
+},
+{
+"name": "status",
+"dataType": "varchar(20)",
+"description": "Current claim processing status"
+},
+{
+"name": "processed_date",
+"dataType": "datetime",
+"description": "Timestamp when record was processed"
+},
+{
+"name": "data_quality_score",
+"dataType": "decimal(3,2)",
+"description": "Automated data quality assessment score"
+}
+],
+"database": "ClaimsDB",
+"server": "healthcare-sql-server.database.windows.net",
+"tableOwner": "Data_Engineering_Team",
+"dataRetentionPolicy": "7_years",
+"accessLevel": "Restricted"
+},
+"guid": "550e8400-e29b-41d4-a716-446655440003",
+"status": "ACTIVE",
+"createdBy": "lineage-automation-framework",
+"createTime": 1721894130000,
+"updatedBy": "lineage-automation-framework",
+"updateTime": 1721894130000
+}
+],
+"referredEntities": {},
+"guidAssignments": {
+"550e8400-e29b-41d4-a716-446655440001": "550e8400-e29b-41d4-a716-446655440001",
+"550e8400-e29b-41d4-a716-446655440002": "550e8400-e29b-41d4-a716-446655440002",
+"550e8400-e29b-41d4-a716-446655440003": "550e8400-e29b-41d4-a716-446655440003"
+}
+}
