@@ -419,6 +419,7 @@
                             </div>
                         </div>
                         Schema Drift Response
+                        <div class="badge badge-info badge-sm ml-2">Post-Mapping Analysis</div>
                     </h3>
                     <div class="flex gap-2">
                         <div class="badge badge-warning badge-lg">
@@ -434,12 +435,42 @@
                     </div>
                 </div>
                 
+                <div class="alert alert-info mb-4 border border-info/30 bg-info/5">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="text-sm">Schema drift analysis validates current files against established column mappings and transformation rules.</span>
+                </div>
+                
                 <div class="h-64 overflow-y-auto bg-base-100 rounded-2xl p-4 border border-base-300">
                     <div id="schemaDriftActions" class="space-y-3">
                         <div class="flex flex-col items-center justify-center h-full text-base-content/50">
                             <i class="fas fa-shield-alt text-4xl mb-3 opacity-30"></i>
                             <p class="text-center">No schema drift detected</p>
                             <p class="text-xs text-center mt-1">System monitoring for changes...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 3: Stakeholder Notification Status -->
+                <div class="bg-base-200 rounded-2xl p-4 mt-4 border border-base-300" id="stakeholderNotificationStatus" style="display: none;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-sm flex items-center">
+                            <i class="fas fa-users mr-2 text-info"></i>
+                            Stakeholder Notifications
+                        </h4>
+                        <div class="badge badge-info badge-sm" id="notificationCount">0 sent</div>
+                    </div>
+                    <div id="notificationSummary" class="text-xs space-y-1">
+                        <div class="flex justify-between">
+                            <span>📧 Email notifications:</span>
+                            <span id="emailNotificationCount">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>🟦 Teams alerts:</span>
+                            <span id="teamsNotificationCount">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>👥 Affected systems:</span>
+                            <span id="affectedSystemsNotified">0</span>
                         </div>
                     </div>
                 </div>
@@ -451,7 +482,17 @@
                         <div class="badge badge-info rounded-full badge-xs text-white">MEDIUM</div>
                         <div class="badge badge-success rounded-full badge-xs text-white">LOW</div>
                     </div>
-                    <span class="text-xs text-base-content/60">Impact levels</span>
+                    <div class="flex gap-2 items-center">
+                        <button class="btn btn-warning btn-xs" onclick="window.lineageSimulation.forceSchemaDrift()" title="Force schema drift for testing">
+                            <i class="fas fa-bolt mr-1"></i>
+                            Force Drift
+                        </button>
+                        <button class="btn btn-ghost btn-xs" onclick="window.lineageSimulation.exportAuditTrail()" title="Export compliance audit trail">
+                            <i class="fas fa-download mr-1"></i>
+                            Export Audit Trail
+                        </button>
+                        <span class="text-xs text-base-content/60">Impact levels</span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -638,6 +638,45 @@ Payback Period: 3.6 months
 
 This framework provides the foundation for enterprise-grade data lineage automation that scales with your organization’s growing data governance needs.
 
+## UI Flow Design Decisions
+
+### Schema Drift Detection Placement
+
+**Sequential Flow Logic (Option 2):**
+
+The framework implements a specific UI component flow for schema drift detection:
+
+1. **File Discovery** → Identify available files and basic structure
+2. **Column-Level Lineage Mapping** → Analyze source-to-destination column transformations  
+3. **Schema Drift Detection** → Compare current vs baseline schemas for changes
+
+### Technical Reasoning
+
+**Dependency Architecture:**
+- Schema drift detection relies on column mapping context established in step 2
+- Drift analysis requires transformation rules to validate against expected schemas
+- Healthcare compliance mandates governance-first approach (establish rules, then validate)
+
+**Business Context for Healthcare Data:**
+- Column lineage establishes the "expected" transformation path for medical data
+- Schema drift validates whether current data matches HIPAA/CMS compliance expectations
+- Sequential flow allows users to see exactly which mapped columns are affected by drift
+
+### Alternative Integration Approaches
+
+**Option 1 - Parallel Detection:**
+- Detect schema drift during initial file discovery
+- Show drift section immediately when detected
+- Keep column lineage as separate analysis step
+
+**Option 3 - Immediate Drift Display:**
+- Always show schema drift section
+- Populate with detected changes in real-time
+- Allow users to toggle between drift and lineage views
+
+**Current Implementation Rationale:**
+The sequential approach (Option 2) follows enterprise data governance best practices where mapping rules are established first, then compliance validation occurs. This is particularly important for healthcare data where regulatory compliance requires documented transformation logic before schema validation.
+
 ---
 
-**Ready to transform your data governance capabilities?** Start with the basic implementation and customize based on the organization’s specific requirements.
+**Ready to transform your data governance capabilities?** Start with the basic implementation and customize based on the organization's specific requirements.

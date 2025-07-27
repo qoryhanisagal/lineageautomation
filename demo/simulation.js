@@ -10,6 +10,13 @@ class LineageSimulation {
         this.generatedJSON = null;
         this.isRunning = false;
         this.currentApiResponse = null;
+        this.detectedSchemaDrift = [];
+        this.baselineSchemas = this.initializeBaselineSchemas();
+        
+        // Phase 3: Stakeholder notification system
+        this.stakeholderMap = this.initializeStakeholderMapping();
+        this.notificationQueue = [];
+        this.notificationStatus = new Map(); // Track delivery status
 
         // Initialize column-level lineage tracker
         this.columnTracker = new ColumnLevelLineageTracker({
@@ -144,15 +151,23 @@ class LineageSimulation {
             if (columnMappingCard) {
                 columnMappingCard.style.display = 'none';
             }
+            // Option 2: Hide schema drift section when column lineage is disabled
+            this.hideSchemaDriftSection();
+            this.detectedSchemaDrift = []; // Clear drift data
         }
     }
 
-    showColumnLineageAnalysis() {
+    async showColumnLineageAnalysis() {
         // Display Azure SQL column lineage mapping table
         const columnMappingCard = document.getElementById('columnMappingCard');
         if (columnMappingCard) {
             columnMappingCard.style.display = 'block';
             this.populateColumnLineageTable();
+            
+            // Option 2: Sequential Flow - Now that column mappings are established, analyze schema drift
+            this.log('📊 Column mappings established, analyzing schema drift...', 'info');
+            await this.delay(1000); // Brief delay for UX
+            await this.analyzeFileSchemas();
         }
     }
 
@@ -399,6 +414,944 @@ class LineageSimulation {
         this.log(`🟢 Exported ${columnMappings.length} column mappings to CSV file`, 'success');
     }
 
+    initializeBaselineSchemas() {
+        // Healthcare-specific baseline schemas for drift detection
+        return {
+            'claims': {
+                version: '2.1',
+                lastUpdated: '2024-07-01',
+                columns: {
+                    'claim_id': { type: 'VARCHAR', length: 50, nullable: false, constraints: ['PRIMARY_KEY'] },
+                    'patient_id': { type: 'VARCHAR', length: 32, nullable: false, constraints: ['FOREIGN_KEY'] },
+                    'provider_id': { type: 'VARCHAR', length: 32, nullable: false, constraints: ['FOREIGN_KEY'] },
+                    'service_date': { type: 'DATE', nullable: false, constraints: [] },
+                    'diagnosis_code': { type: 'VARCHAR', length: 10, nullable: false, constraints: ['ICD10_VALID'] },
+                    'procedure_code': { type: 'VARCHAR', length: 10, nullable: true, constraints: ['CPT_VALID'] },
+                    'claim_amount': { type: 'DECIMAL', precision: 10, scale: 2, nullable: false, constraints: ['POSITIVE'] },
+                    'insurance_type': { type: 'VARCHAR', length: 20, nullable: false, constraints: ['ENUM'] },
+                    'status': { type: 'VARCHAR', length: 15, nullable: false, constraints: ['ENUM'] }
+                },
+                businessRules: {
+                    'claim_amount': 'Must be positive and less than $1,000,000',
+                    'diagnosis_code': 'Must be valid ICD-10 code',
+                    'service_date': 'Cannot be future date or older than 2 years'
+                }
+            },
+            'providers': {
+                version: '1.8',
+                lastUpdated: '2024-06-15',
+                columns: {
+                    'provider_id': { type: 'VARCHAR', length: 32, nullable: false, constraints: ['PRIMARY_KEY'] },
+                    'provider_name': { type: 'VARCHAR', length: 200, nullable: false, constraints: [] },
+                    'npi_number': { type: 'VARCHAR', length: 10, nullable: false, constraints: ['NPI_VALID', 'UNIQUE'] },
+                    'specialty': { type: 'VARCHAR', length: 100, nullable: false, constraints: ['TAXONOMY_VALID'] },
+                    'address': { type: 'VARCHAR', length: 300, nullable: false, constraints: [] },
+                    'city': { type: 'VARCHAR', length: 100, nullable: false, constraints: [] },
+                    'state': { type: 'VARCHAR', length: 2, nullable: false, constraints: ['STATE_CODE'] },
+                    'zip_code': { type: 'VARCHAR', length: 10, nullable: false, constraints: ['ZIP_VALID'] },
+                    'phone': { type: 'VARCHAR', length: 15, nullable: true, constraints: ['PHONE_FORMAT'] }
+                },
+                businessRules: {
+                    'npi_number': 'Must be valid 10-digit NPI from CMS registry',
+                    'specialty': 'Must match approved medical taxonomy codes',
+                    'state': 'Must be valid US state abbreviation'
+                }
+            },
+            'patients': {
+                version: '3.2',
+                lastUpdated: '2024-07-10',
+                columns: {
+                    'patient_id': { type: 'VARCHAR', length: 32, nullable: false, constraints: ['PRIMARY_KEY'] },
+                    'first_name': { type: 'VARCHAR', length: 50, nullable: false, constraints: ['ENCRYPTED'] },
+                    'last_name': { type: 'VARCHAR', length: 50, nullable: false, constraints: ['ENCRYPTED'] },
+                    'date_of_birth': { type: 'DATE', nullable: false, constraints: ['HIPAA_PROTECTED'] },
+                    'gender': { type: 'VARCHAR', length: 1, nullable: false, constraints: ['ENUM'] },
+                    'address': { type: 'VARCHAR', length: 300, nullable: true, constraints: ['ENCRYPTED'] },
+                    'city': { type: 'VARCHAR', length: 100, nullable: true, constraints: [] },
+                    'state': { type: 'VARCHAR', length: 2, nullable: true, constraints: ['STATE_CODE'] },
+                    'zip_code': { type: 'VARCHAR', length: 10, nullable: true, constraints: ['ZIP_VALID'] },
+                    'insurance_id': { type: 'VARCHAR', length: 50, nullable: true, constraints: ['ENCRYPTED'] }
+                },
+                businessRules: {
+                    'date_of_birth': 'HIPAA protected - must be anonymized in reporting',
+                    'first_name': 'PII - requires encryption at rest',
+                    'last_name': 'PII - requires encryption at rest'
+                }
+            }
+        };
+    }
+
+    initializeStakeholderMapping() {
+        // Phase 3: Map data systems to stakeholders who should be notified of changes
+        return {
+            // System-to-stakeholder mappings
+            systems: {
+                'Power BI Claims Dashboard': {
+                    owners: ['sarah.chen@healthcare.com', 'mike.johnson@healthcare.com'],
+                    type: 'BI_REPORT',
+                    teams_channel: 'https://teams.microsoft.com/l/channel/analytics-team',
+                    urgency: 'HIGH',
+                    dependencies: ['claims', 'providers']
+                },
+                'Tableau Executive Reports': {
+                    owners: ['exec.team@healthcare.com', 'cfo@healthcare.com'],
+                    type: 'BI_REPORT', 
+                    teams_channel: 'https://teams.microsoft.com/l/channel/executive-reports',
+                    urgency: 'CRITICAL',
+                    dependencies: ['claims', 'patients']
+                },
+                'Claims Processing API': {
+                    owners: ['dev.team@healthcare.com', 'api.support@healthcare.com'],
+                    type: 'APPLICATION',
+                    teams_channel: 'https://teams.microsoft.com/l/channel/dev-team',
+                    urgency: 'HIGH',
+                    dependencies: ['claims', 'providers', 'patients']
+                },
+                'Azure ML Model Training': {
+                    owners: ['ml.team@healthcare.com', 'data.science@healthcare.com'],
+                    type: 'ML_PIPELINE',
+                    teams_channel: 'https://teams.microsoft.com/l/channel/ml-team',
+                    urgency: 'MEDIUM',
+                    dependencies: ['claims', 'patients']
+                },
+                'Compliance Reporting System': {
+                    owners: ['compliance@healthcare.com', 'audit@healthcare.com'],
+                    type: 'COMPLIANCE',
+                    teams_channel: 'https://teams.microsoft.com/l/channel/compliance',
+                    urgency: 'CRITICAL',
+                    dependencies: ['claims', 'providers', 'patients']
+                }
+            },
+            
+            // File-type to affected systems mapping
+            fileTypeDependencies: {
+                'claims': ['Power BI Claims Dashboard', 'Claims Processing API', 'Azure ML Model Training', 'Compliance Reporting System'],
+                'providers': ['Power BI Claims Dashboard', 'Claims Processing API', 'Compliance Reporting System'],
+                'patients': ['Tableau Executive Reports', 'Claims Processing API', 'Azure ML Model Training', 'Compliance Reporting System']
+            },
+            
+            // Escalation rules based on change severity
+            escalationRules: {
+                'CRITICAL': {
+                    immediate: ['teams', 'email'],
+                    escalateAfter: 15, // minutes
+                    escalateTo: ['cto@healthcare.com', 'cio@healthcare.com']
+                },
+                'HIGH': {
+                    immediate: ['teams', 'email'], 
+                    escalateAfter: 60, // minutes
+                    escalateTo: ['data.governance@healthcare.com']
+                },
+                'MEDIUM': {
+                    immediate: ['teams'],
+                    escalateAfter: 240, // minutes 
+                    escalateTo: ['data.governance@healthcare.com']
+                },
+                'LOW': {
+                    immediate: ['email'],
+                    escalateAfter: 1440, // 24 hours
+                    escalateTo: []
+                }
+            }
+        };
+    }
+
+    // Phase 3: Multi-channel notification framework
+    async notifyAffectedStakeholders(drift) {
+        const fileType = this.getFileType(drift.fileName);
+        const affectedSystems = this.stakeholderMap.fileTypeDependencies[fileType] || [];
+        
+        this.log(`📧 Notifying stakeholders about schema drift in ${drift.fileName}...`, 'info');
+        
+        let totalNotificationsSent = 0;
+        
+        for (const systemName of affectedSystems) {
+            const system = this.stakeholderMap.systems[systemName];
+            if (system) {
+                const notifications = await this.sendSystemNotifications(systemName, system, drift);
+                totalNotificationsSent += notifications;
+            }
+        }
+        
+        this.log(`✅ Sent ${totalNotificationsSent} notifications to affected stakeholders`, 'success');
+        this.showToast(`${totalNotificationsSent} stakeholders notified about schema drift`, 'info');
+        
+        return totalNotificationsSent;
+    }
+
+    async sendSystemNotifications(systemName, system, drift) {
+        let notificationCount = 0;
+        
+        // Determine notification channels based on urgency and change severity
+        const channels = this.getNotificationChannels(system.urgency, drift.severity);
+        
+        for (const channel of channels) {
+            switch (channel) {
+                case 'email':
+                    notificationCount += await this.sendEmailNotifications(systemName, system, drift);
+                    break;
+                case 'teams':
+                    notificationCount += await this.sendTeamsNotifications(systemName, system, drift); 
+                    break;
+                case 'slack':
+                    notificationCount += await this.sendSlackNotifications(systemName, system, drift);
+                    break;
+            }
+        }
+        
+        return notificationCount;
+    }
+
+    getNotificationChannels(systemUrgency, changeSeverity) {
+        const escalationRule = this.stakeholderMap.escalationRules[changeSeverity];
+        return escalationRule ? escalationRule.immediate : ['email'];
+    }
+
+    async sendEmailNotifications(systemName, system, drift) {
+        this.log(`📧 Sending email notifications for ${systemName}...`, 'info');
+        
+        let emailsSent = 0;
+        for (const email of system.owners) {
+            const emailContent = this.generateEmailTemplate(systemName, system, drift, email);
+            
+            // Simulate email sending
+            await this.delay(200);
+            this.log(`  └─ Email sent to ${email}`, 'success');
+            
+            // Track notification status
+            this.trackNotification('email', email, systemName, drift, 'SENT');
+            this.logStakeholderActivity('Email Sent', systemName, email, drift);
+            emailsSent++;
+        }
+        
+        return emailsSent;
+    }
+
+    async sendTeamsNotifications(systemName, system, drift) {
+        this.log(`🟦 Sending Teams notification for ${systemName}...`, 'info');
+        
+        const teamsMessage = this.generateTeamsTemplate(systemName, system, drift);
+        
+        // Simulate Teams webhook call
+        await this.delay(300);
+        this.log(`  └─ Teams message posted to ${systemName} channel`, 'success');
+        
+        // Track notification status  
+        this.trackNotification('teams', system.teams_channel, systemName, drift, 'SENT');
+        this.logStakeholderActivity('Teams Alert', systemName, `${systemName} Channel`, drift);
+        
+        return 1;
+    }
+
+    async sendSlackNotifications(systemName, system, drift) {
+        this.log(`💬 Sending Slack notification for ${systemName}...`, 'info');
+        
+        // Simulate Slack API call
+        await this.delay(250);
+        this.log(`  └─ Slack message sent to ${systemName} workspace`, 'success');
+        
+        this.trackNotification('slack', 'slack-workspace', systemName, drift, 'SENT');
+        
+        return 1;
+    }
+
+    trackNotification(channel, recipient, system, drift, status) {
+        const notificationId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        this.notificationStatus.set(notificationId, {
+            id: notificationId,
+            channel,
+            recipient,
+            system,
+            drift: drift.fileName,
+            status,
+            timestamp: new Date().toISOString(),
+            acknowledged: false
+        });
+        
+        // Add to notification queue for tracking
+        this.notificationQueue.push({
+            id: notificationId,
+            type: 'SCHEMA_DRIFT',
+            system,
+            recipient,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    detectSchemaDrift(fileName, currentSchema) {
+        const fileType = this.getFileType(fileName);
+        const baseline = this.baselineSchemas[fileType];
+        
+        if (!baseline) {
+            return { hasDrift: false, changes: [] };
+        }
+
+        const driftChanges = [];
+        const currentColumns = new Set(currentSchema);
+        const baselineColumns = new Set(Object.keys(baseline.columns));
+
+        // Detect new columns (additions)
+        currentColumns.forEach(column => {
+            if (!baselineColumns.has(column)) {
+                driftChanges.push({
+                    type: 'COLUMN_ADDED',
+                    column: column,
+                    severity: this.assessColumnSeverity(column, fileType),
+                    impact: this.assessImpact(column, fileType, 'ADDED'),
+                    recommendation: this.getRecommendation(column, fileType, 'ADDED'),
+                    businessJustification: this.getBusinessJustification(column, fileType, 'ADDED')
+                });
+            }
+        });
+
+        // Detect removed columns (deletions)
+        baselineColumns.forEach(column => {
+            if (!currentColumns.has(column)) {
+                driftChanges.push({
+                    type: 'COLUMN_REMOVED',
+                    column: column,
+                    severity: 'HIGH', // Removals are always high severity
+                    impact: this.assessImpact(column, fileType, 'REMOVED'),
+                    recommendation: this.getRecommendation(column, fileType, 'REMOVED'),
+                    businessJustification: this.getBusinessJustification(column, fileType, 'REMOVED')
+                });
+            }
+        });
+
+        return {
+            hasDrift: driftChanges.length > 0,
+            changes: driftChanges,
+            fileType: fileType,
+            fileName: fileName,
+            baselineVersion: baseline.version,
+            detectedAt: new Date().toISOString()
+        };
+    }
+
+    assessColumnSeverity(column, fileType) {
+        // Healthcare-specific severity assessment
+        const criticalKeywords = ['patient_id', 'ssn', 'medical_record', 'diagnosis', 'prescription'];
+        const hipaaKeywords = ['name', 'address', 'phone', 'email', 'dob', 'birth'];
+        const billingKeywords = ['amount', 'cost', 'charge', 'payment', 'insurance'];
+
+        const columnLower = column.toLowerCase();
+
+        if (criticalKeywords.some(keyword => columnLower.includes(keyword))) {
+            return 'CRITICAL';
+        }
+        if (hipaaKeywords.some(keyword => columnLower.includes(keyword))) {
+            return 'HIGH';
+        }
+        if (billingKeywords.some(keyword => columnLower.includes(keyword))) {
+            return 'MEDIUM';
+        }
+        return 'LOW';
+    }
+
+    assessImpact(column, fileType, changeType) {
+        const impacts = [];
+        
+        if (changeType === 'ADDED') {
+            impacts.push(`${fileType} processing pipeline may need updates`);
+            impacts.push('Downstream Azure SQL tables require schema modifications');
+            impacts.push('Data validation rules need review');
+            
+            if (this.assessColumnSeverity(column, fileType) === 'CRITICAL') {
+                impacts.push('HIPAA compliance assessment required');
+                impacts.push('Security team approval needed');
+            }
+        } else if (changeType === 'REMOVED') {
+            impacts.push(`Existing reports referencing ${column} will fail`);
+            impacts.push('Data transformation pipelines need adjustment');
+            impacts.push('Historical data analysis may be affected');
+        }
+
+        return impacts;
+    }
+
+    getRecommendation(column, fileType, changeType) {
+        if (changeType === 'ADDED') {
+            const severity = this.assessColumnSeverity(column, fileType);
+            if (severity === 'CRITICAL') {
+                return 'Require security review and HIPAA assessment before approval';
+            } else if (severity === 'HIGH') {
+                return 'Apply data protection measures and update privacy documentation';
+            } else {
+                return 'Review business justification and update data dictionary';
+            }
+        } else {
+            return 'Verify removal is intentional and update all dependent systems';
+        }
+    }
+
+    getBusinessJustification(column, fileType, changeType) {
+        if (changeType === 'ADDED') {
+            return `New ${column} field added to ${fileType} data - likely due to regulatory updates or business requirement changes`;
+        } else {
+            return `${column} field removed from ${fileType} data - may indicate data source changes or privacy compliance updates`;
+        }
+    }
+
+    // Phase 3: Notification templates for different channels
+    generateEmailTemplate(systemName, system, drift, recipientEmail) {
+        const severityEmoji = {
+            'CRITICAL': '🚨',
+            'HIGH': '⚠️', 
+            'MEDIUM': '⚡',
+            'LOW': '📝'
+        }[drift.severity] || '📄';
+
+        return {
+            to: recipientEmail,
+            subject: `${severityEmoji} Schema Drift Alert: ${systemName} Impact`,
+            html: `
+                <h2>Schema Drift Detected</h2>
+                <p>Hello,</p>
+                <p>A schema change has been detected in <strong>${drift.fileName}</strong> that may impact your system:</p>
+                
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                    <h3>🎯 Affected System: ${systemName}</h3>
+                    <p><strong>File:</strong> ${drift.fileName}</p>
+                    <p><strong>Severity:</strong> ${drift.severity}</p>
+                    <p><strong>Changes:</strong> ${drift.changes.length} column changes detected</p>
+                </div>
+
+                <h4>🔧 Required Actions:</h4>
+                <ul>
+                    ${drift.changes.map(change => `
+                        <li><strong>${change.type}:</strong> ${change.column} (${change.severity})</li>
+                        <li style="margin-left: 20px; color: #666;">${change.recommendation}</li>
+                    `).join('')}
+                </ul>
+
+                <p><strong>Next Steps:</strong></p>
+                <ol>
+                    <li>Review the schema changes in the lineage automation tool</li>
+                    <li>Assess impact on your ${system.type.toLowerCase()}</li>
+                    <li>Approve or reject changes as appropriate</li>
+                    <li>Update your system if changes are approved</li>
+                </ol>
+
+                <p>For immediate questions, please contact the Data Governance team.</p>
+                
+                <hr>
+                <small>This is an automated notification from the Healthcare Data Lineage System</small>
+            `,
+            text: `Schema Drift Alert: ${systemName}\n\nFile: ${drift.fileName}\nSeverity: ${drift.severity}\nChanges: ${drift.changes.length} detected\n\nPlease review and take appropriate action.`
+        };
+    }
+
+    generateTeamsTemplate(systemName, system, drift) {
+        const severityColor = {
+            'CRITICAL': 'attention',
+            'HIGH': 'warning',
+            'MEDIUM': 'accent', 
+            'LOW': 'good'
+        }[drift.severity] || 'default';
+
+        return {
+            '@type': 'MessageCard',
+            '@context': 'http://schema.org/extensions',
+            summary: `Schema Drift Alert: ${systemName}`,
+            themeColor: severityColor === 'attention' ? 'FF0000' : severityColor === 'warning' ? 'FFA500' : '0078D4',
+            sections: [
+                {
+                    activityTitle: `🚨 Schema Drift Alert`,
+                    activitySubtitle: `${systemName} may be impacted`,
+                    facts: [
+                        { name: 'File:', value: drift.fileName },
+                        { name: 'Severity:', value: drift.severity },
+                        { name: 'Changes:', value: `${drift.changes.length} column changes` },
+                        { name: 'System Type:', value: system.type }
+                    ]
+                },
+                {
+                    title: 'Detected Changes:',
+                    text: drift.changes.map(change => 
+                        `• **${change.type}**: ${change.column} (${change.severity})`
+                    ).join('\n')
+                }
+            ],
+            potentialAction: [
+                {
+                    '@type': 'OpenUri',
+                    name: 'Review Changes',
+                    targets: [{ os: 'default', uri: 'https://your-lineage-tool.com/schema-drift' }]
+                },
+                {
+                    '@type': 'HttpPOST', 
+                    name: 'Acknowledge Alert',
+                    target: 'https://your-api.com/acknowledge'
+                }
+            ]
+        };
+    }
+
+    async analyzeFileSchemas() {
+        this.log('🔍 Analyzing file schemas for drift detection (using established column mappings)...', 'info');
+        this.log(`📊 Discovered files count: ${this.discoveredFiles.length}`, 'info');
+        
+        for (const file of this.discoveredFiles) {
+            this.log(`🔍 Analyzing file: ${file.fileName}`, 'info');
+            
+            // Get current schema for the file
+            const currentSchema = this.getSchemaForFileType(file.fileName);
+            this.log(`📋 Current schema: [${currentSchema.join(', ')}]`, 'info');
+            
+            // Simulate schema drift scenarios (80% chance per file for testing)
+            const randomValue = Math.random();
+            const shouldSimulateDrift = randomValue < 0.8;
+            this.log(`🎲 Drift simulation roll: ${randomValue.toFixed(3)} (threshold: 0.8) → ${shouldSimulateDrift ? 'DRIFT' : 'NO DRIFT'}`, 'info');
+            
+            if (shouldSimulateDrift) {
+                // Create modified schema to simulate drift
+                this.log(`🔧 Simulating schema drift for ${file.fileName}...`, 'info');
+                const modifiedSchema = this.simulateSchemaDrift(currentSchema, file.fileName);
+                this.log(`📋 Modified schema: [${modifiedSchema.join(', ')}]`, 'info');
+                
+                const driftResult = this.detectSchemaDrift(file.fileName, modifiedSchema);
+                this.log(`🔍 Drift detection result: hasDrift=${driftResult.hasDrift}, changes=${driftResult.changes.length}`, 'info');
+                
+                if (driftResult.hasDrift) {
+                    this.detectedSchemaDrift.push(driftResult);
+                    this.log(`⚠️ Schema drift detected in ${file.fileName}`, 'warning');
+                } else {
+                    this.log(`❌ Drift simulation failed - no changes detected`, 'warning');
+                }
+            } else {
+                // No drift - schema matches baseline
+                this.log(`✅ No drift simulation for ${file.fileName} - checking baseline`, 'info');
+                const driftResult = this.detectSchemaDrift(file.fileName, currentSchema);
+                if (driftResult.hasDrift) {
+                    this.detectedSchemaDrift.push(driftResult);
+                    this.log(`⚠️ Unexpected drift detected in baseline schema for ${file.fileName}`, 'warning');
+                }
+            }
+            
+            await this.delay(200); // Small delay for realism
+        }
+        
+        if (this.detectedSchemaDrift.length > 0) {
+            this.log(`🔴 Schema drift analysis complete: ${this.detectedSchemaDrift.length} drift events detected (post-mapping validation)`, 'warning');
+            this.showSchemaDriftSection();
+            this.showToast(`Schema drift detected in ${this.detectedSchemaDrift.length} files - Column mappings may need updates`, 'warning');
+            
+            // Phase 3: Notify affected stakeholders
+            this.log('📧 Initiating stakeholder notification process...', 'info');
+            this.notifyAllAffectedStakeholders();
+        } else {
+            this.log('✅ Schema analysis complete: No drift detected', 'success');
+            this.hideSchemaDriftSection();
+        }
+    }
+
+    async notifyAllAffectedStakeholders() {
+        let totalNotifications = 0;
+        
+        for (const drift of this.detectedSchemaDrift) {
+            const notificationsSent = await this.notifyAffectedStakeholders(drift);
+            totalNotifications += notificationsSent;
+            
+            // Add delay between drift notifications for realism
+            await this.delay(500);
+        }
+        
+        this.log(`📊 Stakeholder notification complete: ${totalNotifications} total notifications sent`, 'success');
+        
+        // Update the UI with notification summary
+        this.updateNotificationStatusUI();
+    }
+
+    simulateSchemaDrift(originalSchema, fileName) {
+        const fileType = this.getFileType(fileName);
+        this.log(`📁 File type detected: ${fileType}`, 'info');
+        
+        const driftScenarios = this.getHealthcareDriftScenarios(fileType);
+        this.log(`🎲 Available drift scenarios: ${driftScenarios.length}`, 'info');
+        
+        // Pick a random drift scenario
+        const scenarioIndex = Math.floor(Math.random() * driftScenarios.length);
+        const scenario = driftScenarios[scenarioIndex];
+        this.log(`🎯 Selected scenario: ${scenario.type} - ${scenario.column}`, 'info');
+        
+        const modifiedSchema = [...originalSchema];
+        
+        if (scenario.type === 'ADD_COLUMN') {
+            modifiedSchema.push(scenario.column);
+            this.log(`➕ Added column: ${scenario.column}`, 'info');
+        } else if (scenario.type === 'REMOVE_COLUMN') {
+            const index = modifiedSchema.indexOf(scenario.column);
+            if (index > -1) {
+                modifiedSchema.splice(index, 1);
+                this.log(`➖ Removed column: ${scenario.column}`, 'info');
+            } else {
+                this.log(`⚠️ Could not remove column ${scenario.column} - not found in schema`, 'warning');
+            }
+        }
+        
+        return modifiedSchema;
+    }
+
+    getHealthcareDriftScenarios(fileType) {
+        const scenarios = {
+            'claims': [
+                { type: 'ADD_COLUMN', column: 'prior_auth_code', reason: 'New prior authorization tracking requirement' },
+                { type: 'ADD_COLUMN', column: 'telehealth_indicator', reason: 'Post-COVID telehealth compliance' },
+                { type: 'ADD_COLUMN', column: 'risk_adjustment_code', reason: 'CMS risk adjustment updates' },
+                { type: 'REMOVE_COLUMN', column: 'legacy_provider_id', reason: 'Legacy system decommission' }
+            ],
+            'providers': [
+                { type: 'ADD_COLUMN', column: 'dea_number', reason: 'DEA registration tracking for controlled substances' },
+                { type: 'ADD_COLUMN', column: 'medicare_provider_id', reason: 'Medicare provider enrollment updates' },
+                { type: 'ADD_COLUMN', column: 'quality_score', reason: 'Value-based care quality metrics' }
+            ],
+            'patients': [
+                { type: 'ADD_COLUMN', column: 'emergency_contact_phone', reason: 'Enhanced emergency contact requirements' },
+                { type: 'ADD_COLUMN', column: 'preferred_language', reason: 'Cultural competency compliance' },
+                { type: 'REMOVE_COLUMN', column: 'ssn_last_four', reason: 'Enhanced privacy protection measures' }
+            ]
+        };
+        
+        return scenarios[fileType] || scenarios['claims'];
+    }
+
+    showSchemaDriftSection() {
+        const schemaDriftSection = document.getElementById('schemaDriftSection');
+        if (schemaDriftSection) {
+            schemaDriftSection.style.display = 'block';
+        }
+        
+        // Update affected systems count
+        const affectedSystemsCount = document.getElementById('affectedSystemsCount');
+        if (affectedSystemsCount) {
+            affectedSystemsCount.textContent = this.detectedSchemaDrift.length;
+        }
+        
+        // Populate drift actions
+        this.populateSchemaDriftActions();
+    }
+
+    hideSchemaDriftSection() {
+        const schemaDriftSection = document.getElementById('schemaDriftSection');
+        if (schemaDriftSection) {
+            schemaDriftSection.style.display = 'none';
+        }
+    }
+
+    populateSchemaDriftActions() {
+        const driftActionsContainer = document.getElementById('schemaDriftActions');
+        if (!driftActionsContainer) return;
+        
+        driftActionsContainer.innerHTML = '';
+        
+        this.detectedSchemaDrift.forEach((drift, index) => {
+            drift.changes.forEach((change, changeIndex) => {
+                const actionCard = document.createElement('div');
+                actionCard.className = 'card bg-base-200 shadow-sm mb-3';
+                
+                const severityColor = this.getSeverityColor(change.severity);
+                const typeIcon = change.type === 'COLUMN_ADDED' ? 'fa-plus-circle' : 'fa-minus-circle';
+                const typeColor = change.type === 'COLUMN_ADDED' ? 'text-success' : 'text-error';
+                
+                actionCard.innerHTML = `
+                    <div class="card-body p-4">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fas ${typeIcon} ${typeColor}"></i>
+                                <h4 class="font-semibold text-sm">${drift.fileName}</h4>
+                                <div class="badge ${severityColor} badge-xs">${change.severity}</div>
+                            </div>
+                            <div class="text-xs text-base-content/60">${new Date(drift.detectedAt).toLocaleTimeString()}</div>
+                        </div>
+                        
+                        <p class="text-sm mb-2">
+                            <strong>${change.type === 'COLUMN_ADDED' ? 'New column:' : 'Removed column:'}</strong> 
+                            <code class="bg-base-300 px-1 rounded">${change.column}</code>
+                        </p>
+                        
+                        <p class="text-xs text-base-content/70 mb-3">${change.businessJustification}</p>
+                        
+                        <div class="flex gap-2 flex-wrap">
+                            <button class="btn btn-success btn-xs" onclick="window.lineageSimulation.approveDriftChange(${index}, ${changeIndex})">
+                                <i class="fas fa-check mr-1"></i>Approve
+                            </button>
+                            <button class="btn btn-warning btn-xs" onclick="window.lineageSimulation.flagForReview(${index}, ${changeIndex})">
+                                <i class="fas fa-flag mr-1"></i>Flag for Review
+                            </button>
+                            <button class="btn btn-error btn-xs" onclick="window.lineageSimulation.rejectDriftChange(${index}, ${changeIndex})">
+                                <i class="fas fa-times mr-1"></i>Reject
+                            </button>
+                            <button class="btn btn-ghost btn-xs" onclick="window.lineageSimulation.showDriftDetails(${index}, ${changeIndex})">
+                                <i class="fas fa-info-circle mr-1"></i>Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                driftActionsContainer.appendChild(actionCard);
+            });
+        });
+    }
+
+    getSeverityColor(severity) {
+        const colors = {
+            'CRITICAL': 'badge-error',
+            'HIGH': 'badge-warning',
+            'MEDIUM': 'badge-info',
+            'LOW': 'badge-success'
+        };
+        return colors[severity] || 'badge-outline';
+    }
+
+    approveDriftChange(driftIndex, changeIndex) {
+        const drift = this.detectedSchemaDrift[driftIndex];
+        const change = drift.changes[changeIndex];
+        
+        this.log(`✅ Approved schema change: ${change.column} in ${drift.fileName}`, 'success');
+        this.showToast(`Schema change approved: ${change.column}`, 'success');
+        
+        // Mark as resolved and remove from UI
+        drift.changes[changeIndex].status = 'APPROVED';
+        this.populateSchemaDriftActions();
+    }
+
+    flagForReview(driftIndex, changeIndex) {
+        const drift = this.detectedSchemaDrift[driftIndex];
+        const change = drift.changes[changeIndex];
+        
+        this.log(`🔍 Flagged for review: ${change.column} in ${drift.fileName}`, 'warning');
+        this.showToast(`Schema change flagged for review: ${change.column}`, 'warning');
+        
+        drift.changes[changeIndex].status = 'UNDER_REVIEW';
+    }
+
+    rejectDriftChange(driftIndex, changeIndex) {
+        const drift = this.detectedSchemaDrift[driftIndex];
+        const change = drift.changes[changeIndex];
+        
+        this.log(`❌ Rejected schema change: ${change.column} in ${drift.fileName}`, 'error');
+        this.showToast(`Schema change rejected: ${change.column}`, 'error');
+        
+        drift.changes[changeIndex].status = 'REJECTED';
+        this.populateSchemaDriftActions();
+    }
+
+    showDriftDetails(driftIndex, changeIndex) {
+        const drift = this.detectedSchemaDrift[driftIndex];
+        const change = drift.changes[changeIndex];
+        
+        this.log(`📋 Schema Drift Details for ${change.column}:`, 'info');
+        this.log(`  └─ File: ${drift.fileName}`, 'info');
+        this.log(`  └─ Type: ${change.type}`, 'info');
+        this.log(`  └─ Severity: ${change.severity}`, 'info');
+        this.log(`  └─ Recommendation: ${change.recommendation}`, 'info');
+        
+        change.impact.forEach(impact => {
+            this.log(`  └─ Impact: ${impact}`, 'info');
+        });
+        
+        this.showToast(`Schema drift details logged for ${change.column}`, 'info');
+        
+        // Phase 3: Show stakeholder notification status for this change
+        this.showNotificationStatus(driftIndex, changeIndex);
+    }
+
+    showNotificationStatus(driftIndex, changeIndex) {
+        const drift = this.detectedSchemaDrift[driftIndex];
+        const change = drift.changes[changeIndex];
+        
+        this.log(`📧 Notification Status for ${change.column}:`, 'info');
+        
+        // Filter notifications for this specific drift
+        const relatedNotifications = Array.from(this.notificationStatus.values()).filter(
+            notification => notification.drift === drift.fileName
+        );
+        
+        if (relatedNotifications.length > 0) {
+            this.log(`  └─ Total notifications sent: ${relatedNotifications.length}`, 'success');
+            
+            // Group by system
+            const notificationsBySystem = {};
+            relatedNotifications.forEach(notification => {
+                if (!notificationsBySystem[notification.system]) {
+                    notificationsBySystem[notification.system] = [];
+                }
+                notificationsBySystem[notification.system].push(notification);
+            });
+            
+            Object.entries(notificationsBySystem).forEach(([system, notifications]) => {
+                this.log(`  └─ ${system}: ${notifications.length} notifications`, 'info');
+                notifications.forEach(notification => {
+                    const statusIcon = notification.acknowledged ? '✅' : notification.status === 'SENT' ? '📧' : '❌';
+                    this.log(`    └─ ${statusIcon} ${notification.channel}: ${notification.recipient}`, 'info');
+                });
+            });
+        } else {
+            this.log(`  └─ No notifications sent yet`, 'warning');
+        }
+    }
+
+    // Phase 3: Enhanced activity feed with stakeholder tracking
+    logStakeholderActivity(action, system, recipient, drift) {
+        const timestamp = new Date().toLocaleTimeString();
+        const activityMessage = `[${timestamp}] 👥 ${action}: ${system} → ${recipient} (${drift.fileName})`;
+        
+        this.log(activityMessage, 'info');
+        
+        // Also add to a separate stakeholder activity log if needed
+        if (!this.stakeholderActivityLog) {
+            this.stakeholderActivityLog = [];
+        }
+        
+        this.stakeholderActivityLog.push({
+            timestamp: new Date().toISOString(),
+            action,
+            system,
+            recipient,
+            drift: drift.fileName,
+            severity: drift.severity
+        });
+    }
+
+    updateNotificationStatusUI() {
+        const notificationStatusElement = document.getElementById('stakeholderNotificationStatus');
+        const notificationCountElement = document.getElementById('notificationCount');
+        const emailCountElement = document.getElementById('emailNotificationCount');
+        const teamsCountElement = document.getElementById('teamsNotificationCount');
+        const affectedSystemsElement = document.getElementById('affectedSystemsNotified');
+        
+        if (!notificationStatusElement) return;
+        
+        const allNotifications = Array.from(this.notificationStatus.values());
+        const totalNotifications = allNotifications.length;
+        
+        if (totalNotifications > 0) {
+            notificationStatusElement.style.display = 'block';
+            
+            // Count notifications by channel
+            const emailNotifications = allNotifications.filter(n => n.channel === 'email').length;
+            const teamsNotifications = allNotifications.filter(n => n.channel === 'teams').length;
+            
+            // Count unique affected systems
+            const uniqueSystems = new Set(allNotifications.map(n => n.system)).size;
+            
+            // Update UI elements
+            if (notificationCountElement) {
+                notificationCountElement.textContent = `${totalNotifications} sent`;
+            }
+            if (emailCountElement) {
+                emailCountElement.textContent = emailNotifications;
+            }
+            if (teamsCountElement) {
+                teamsCountElement.textContent = teamsNotifications;
+            }
+            if (affectedSystemsElement) {
+                affectedSystemsElement.textContent = uniqueSystems;
+            }
+        } else {
+            notificationStatusElement.style.display = 'none';
+        }
+    }
+
+    // Phase 3: Audit trail and compliance reporting
+    generateAuditTrail() {
+        const auditReport = {
+            timestamp: new Date().toISOString(),
+            sessionId: `session-${Date.now()}`,
+            summary: {
+                totalNotifications: this.notificationQueue.length,
+                stakeholdersNotified: new Set(this.notificationQueue.map(n => n.recipient)).size,
+                systemsAffected: new Set(this.notificationQueue.map(n => n.system)).size,
+                driftEventsDetected: this.detectedSchemaDrift.length
+            },
+            notifications: this.notificationQueue.map(notification => ({
+                ...notification,
+                deliveryStatus: this.notificationStatus.get(notification.id)?.status || 'UNKNOWN'
+            })),
+            stakeholderActivity: this.stakeholderActivityLog || [],
+            driftEvents: this.detectedSchemaDrift.map(drift => ({
+                fileName: drift.fileName,
+                severity: drift.severity,
+                changesCount: drift.changes.length,
+                detectedAt: drift.detectedAt,
+                changes: drift.changes.map(change => ({
+                    type: change.type,
+                    column: change.column,
+                    severity: change.severity,
+                    businessJustification: change.businessJustification
+                }))
+            })),
+            complianceInfo: {
+                healthcareCompliance: 'HIPAA',
+                dataGovernanceFramework: 'Enterprise Data Management',
+                auditRetentionPeriod: '7 years',
+                regulatoryRequirements: ['HIPAA', 'CMS', 'FDA 21 CFR Part 11']
+            }
+        };
+        
+        return auditReport;
+    }
+
+    exportAuditTrail() {
+        const auditReport = this.generateAuditTrail();
+        
+        const blob = new Blob([JSON.stringify(auditReport, null, 2)], {
+            type: 'application/json'
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `schema-drift-audit-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        this.log('📋 Audit trail exported successfully', 'success');
+        this.showToast('Audit trail downloaded for compliance records', 'success');
+    }
+
+    // Force schema drift for testing purposes
+    async forceSchemaDrift() {
+        if (this.discoveredFiles.length === 0) {
+            this.showToast('No files discovered yet - run a directory scan first', 'warning');
+            return;
+        }
+
+        this.log('⚡ FORCING SCHEMA DRIFT for testing...', 'warning');
+        this.detectedSchemaDrift = []; // Clear any existing drift
+        
+        // Force drift on the first file
+        const firstFile = this.discoveredFiles[0];
+        this.log(`🎯 Targeting file: ${firstFile.fileName}`, 'info');
+        
+        const currentSchema = this.getSchemaForFileType(firstFile.fileName);
+        this.log(`📋 Original schema: [${currentSchema.join(', ')}]`, 'info');
+        
+        const modifiedSchema = this.simulateSchemaDrift(currentSchema, firstFile.fileName);
+        this.log(`📋 Modified schema: [${modifiedSchema.join(', ')}]`, 'info');
+        
+        const driftResult = this.detectSchemaDrift(firstFile.fileName, modifiedSchema);
+        
+        if (driftResult.hasDrift) {
+            this.detectedSchemaDrift.push(driftResult);
+            this.log(`✅ Forced drift successful: ${driftResult.changes.length} changes detected`, 'success');
+            
+            // Show the drift section and notify stakeholders
+            this.showSchemaDriftSection();
+            this.showToast(`Schema drift forced: ${driftResult.changes.length} changes detected`, 'warning');
+            
+            // Notify stakeholders
+            this.log('📧 Initiating stakeholder notification process...', 'info');
+            await this.notifyAllAffectedStakeholders();
+        } else {
+            this.log('❌ Force drift failed - no changes detected', 'error');
+            this.showToast('Force drift failed - unable to generate schema changes', 'error');
+        }
+    }
+
     getTransformationColor(transformation) {
         const colors = {
             'RENAME_VALIDATE': 'badge-info',
@@ -612,6 +1565,10 @@ class LineageSimulation {
 
         // Pseudo-dynamic file discovery
         this.discoveredFiles = this.generateRandomFiles();
+        
+        // Option 2: Sequential Flow - Schema drift detection will happen after column mapping
+        // Initialize drift array but don't analyze yet
+        this.detectedSchemaDrift = [];
         
         this.log(`Scan complete! Found ${this.discoveredFiles.length} new files for processing`, 'success');
         
@@ -1004,6 +1961,12 @@ class LineageSimulation {
         this.generatedJSON = null;
         this.isRunning = false;
         this.currentApiResponse = null;
+        this.detectedSchemaDrift = [];
+        
+        // Phase 3: Reset notification system
+        this.notificationQueue = [];
+        this.notificationStatus = new Map();
+        this.stakeholderActivityLog = [];
 
         // Reset buttons
         document.getElementById('startScan').disabled = false;
@@ -1037,6 +2000,22 @@ class LineageSimulation {
 
         // Reset JSON validation badge
         this.updateJsonValidationBadge('default');
+
+        // Hide schema drift section
+        this.hideSchemaDriftSection();
+        
+        // Phase 3: Reset notification status UI
+        const notificationStatusElement = document.getElementById('stakeholderNotificationStatus');
+        if (notificationStatusElement) {
+            notificationStatusElement.style.display = 'none';
+        }
+        // Reset notification counters
+        ['notificationCount', 'emailNotificationCount', 'teamsNotificationCount', 'affectedSystemsNotified'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = id === 'notificationCount' ? '0 sent' : '0';
+            }
+        });
 
         // Clear displays
         document.getElementById('activityLog').innerHTML = '<div class="text-base-content/50">Waiting for automation to start...</div>';

@@ -357,4 +357,63 @@ module.exports = async function (context, eventGridEvent) {
 - Metadata cache: ~10MB per 1,000 files
 - Configuration storage: <1MB
 
+## UI Component Flow Architecture
+
+### Sequential Processing Design
+
+The framework implements a deliberate UI component ordering for schema drift detection:
+
+**Component Flow Logic:**
+```
+File Discovery → Column Lineage Mapping → Schema Drift Detection
+```
+
+### Technical Dependencies
+
+**Column Lineage Requirements:**
+- Establishes source-to-destination column mappings
+- Defines expected transformation rules and business logic
+- Provides Azure SQL connection context and table schemas
+- Creates baseline for drift comparison operations
+
+**Schema Drift Dependencies:**
+- Requires existing column mappings for context validation
+- Relies on transformation rules to assess drift impact
+- Uses baseline schemas established during column mapping
+- Performs change impact analysis against mapped destinations
+
+### Implementation Architecture
+
+**Component State Management:**
+```javascript
+// UI component visibility logic
+class ComponentFlowManager {
+  updateVisibility() {
+    // Step 1: Always show file discovery
+    this.showComponent('fileDiscovery');
+    
+    // Step 2: Show column mapping when files discovered
+    if (this.discoveredFiles.length > 0) {
+      this.showComponent('columnLineageMapping');
+    }
+    
+    // Step 3: Show schema drift when mappings established AND drift detected
+    if (this.columnMappingsComplete && this.detectedSchemaDrift.length > 0) {
+      this.showComponent('schemaDriftSection');
+    }
+  }
+}
+```
+
+**Technical Rationale:**
+- **Dependency Chain**: Schema drift analysis requires column mapping context
+- **Healthcare Compliance**: Regulatory requirements mandate transformation documentation before validation
+- **Enterprise Governance**: Business rules must be established before compliance checking
+- **User Experience**: Sequential flow provides logical progression through data governance workflow
+
+**Alternative Architectures Considered:**
+1. **Parallel Detection**: Run schema drift alongside column mapping (increases complexity)
+2. **Immediate Display**: Always show drift section (reduces contextual understanding)
+3. **Toggle-Based**: Allow user switching between views (breaks sequential workflow logic)
+
 This technical approach ensures scalable, reliable, and secure automated lineage registration while maintaining flexibility for future enhancements and integration requirements.
