@@ -164,10 +164,14 @@ class LineageSimulation {
             columnMappingCard.style.display = 'block';
             this.populateColumnLineageTable();
             
-            // Option 2: Sequential Flow - Now that column mappings are established, analyze schema drift
-            this.log('📊 Column mappings established, analyzing schema drift...', 'info');
-            await this.delay(1000); // Brief delay for UX
-            await this.analyzeFileSchemas();
+            // Option A: Schema drift now happens during file discovery, not here
+            // Column lineage can enhance drift analysis but doesn't trigger it
+            if (this.detectedSchemaDrift.length > 0) {
+                this.log('📊 Column mappings established - enhancing existing drift analysis with mapping context', 'info');
+                // Could add additional drift analysis specific to column mappings here if needed
+            } else {
+                this.log('📊 Column mappings established - no schema drift detected during discovery', 'info');
+            }
         }
     }
 
@@ -1293,6 +1297,13 @@ class LineageSimulation {
         return auditReport;
     }
 
+    getNotificationCount(fileName) {
+        // Count notifications sent for a specific file
+        return Array.from(this.notificationStatus.values()).filter(
+            notification => notification.drift === fileName
+        ).length;
+    }
+
     exportAuditTrail() {
         const auditReport = this.generateAuditTrail();
         
@@ -1566,11 +1577,24 @@ class LineageSimulation {
         // Pseudo-dynamic file discovery
         this.discoveredFiles = this.generateRandomFiles();
         
-        // Option 2: Sequential Flow - Schema drift detection will happen after column mapping
-        // Initialize drift array but don't analyze yet
-        this.detectedSchemaDrift = [];
-        
         this.log(`Scan complete! Found ${this.discoveredFiles.length} new files for processing`, 'success');
+        
+        // Option A: Schema drift detection as part of file discovery
+        this.log('🔍 Analyzing discovered files for schema drift...', 'info');
+        this.detectedSchemaDrift = [];
+        await this.analyzeFileSchemas();
+        
+        if (this.detectedSchemaDrift.length > 0) {
+            this.log(`📊 Schema drift analysis complete: ${this.detectedSchemaDrift.length} drift events detected during discovery`, 'warning');
+            this.showSchemaDriftSection();
+            this.showToast(`Schema drift detected in ${this.detectedSchemaDrift.length} files during discovery`, 'warning');
+            
+            // Notify stakeholders about drift found during discovery
+            this.log('📧 Initiating stakeholder notification process...', 'info');
+            await this.notifyAllAffectedStakeholders();
+        } else {
+            this.log('✅ Schema analysis complete: No drift detected in discovered files', 'success');
+        }
         
         // Update scanner status
         document.getElementById('scannerLoading').classList.add('hidden');
@@ -1801,13 +1825,16 @@ class LineageSimulation {
             const fileComplexity = this.getIntelligentComplexity(file.fileName);
             const timestamp = new Date().toISOString();
             
+            // Check if this file has schema drift detected
+            const fileDrift = this.detectedSchemaDrift.find(drift => drift.fileName === file.fileName);
+            
             // Create entities based on complexity level
             for (let i = 0; i < fileComplexity; i++) {
                 const entitySuffix = i === 0 ? '' : `_${i}`;
                 
                 if (i === 0) {
-                    // Source Dataset (always first entity)
-                    entities.push({
+                    // Source Dataset (always first entity) with schema drift metadata
+                    const tableEntity = {
                         typeName: "azure_sql_table",
                         attributes: {
                             qualifiedName: `mssql://healthcare-sql-server.database.windows.net/ClaimsDB/dbo/${pipelineConfig.destinationTable}${entitySuffix}`,
@@ -1823,10 +1850,28 @@ class LineageSimulation {
                         },
                         guid: this.generateGuid(),
                         status: "ACTIVE"
-                    });
+                    };
+                    
+                    // Add schema drift metadata if detected
+                    if (fileDrift) {
+                        tableEntity.attributes.schemaDriftDetected = true;
+                        tableEntity.attributes.schemaDriftSeverity = fileDrift.severity || 'UNKNOWN';
+                        tableEntity.attributes.schemaDriftChanges = fileDrift.changes.length;
+                        tableEntity.attributes.schemaDriftDetectedAt = fileDrift.detectedAt;
+                        tableEntity.attributes.baselineSchemaVersion = fileDrift.baselineVersion;
+                        tableEntity.attributes.driftChangeTypes = fileDrift.changes.map(c => c.type);
+                        tableEntity.attributes.affectedColumns = fileDrift.changes.map(c => c.column);
+                        tableEntity.attributes.stakeholdersNotified = this.getNotificationCount(file.fileName);
+                    } else {
+                        tableEntity.attributes.schemaDriftDetected = false;
+                        tableEntity.attributes.schemaDriftSeverity = null;
+                        tableEntity.attributes.stakeholdersNotified = 0;
+                    }
+                    
+                    entities.push(tableEntity);
                 } else if (i === 1) {
-                    // Process (second entity)
-                    entities.push({
+                    // Process (second entity) with schema drift impact
+                    const processEntity = {
                         typeName: "Process",
                         attributes: {
                             qualifiedName: `adf://pipelines/${pipelineConfig.pipelineName}${entitySuffix}`,
@@ -1840,7 +1885,20 @@ class LineageSimulation {
                         },
                         guid: this.generateGuid(),
                         status: "ACTIVE"
-                    });
+                    };
+                    
+                    // Add schema drift impact to process
+                    if (fileDrift) {
+                        processEntity.attributes.affectedBySchemaDrift = true;
+                        processEntity.attributes.driftImpactLevel = fileDrift.severity;
+                        processEntity.attributes.pipelineUpdateRequired = fileDrift.changes.length > 0;
+                        processEntity.attributes.lastSchemaValidation = fileDrift.detectedAt;
+                    } else {
+                        processEntity.attributes.affectedBySchemaDrift = false;
+                        processEntity.attributes.pipelineUpdateRequired = false;
+                    }
+                    
+                    entities.push(processEntity);
                 } else {
                     // Additional entities for higher complexity
                     const entityTypes = ["Column", "Schema", "Index", "View"];
