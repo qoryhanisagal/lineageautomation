@@ -560,7 +560,7 @@ class LineageSimulation {
         };
     }
 
-    // Phase 3: Multi-channel notification framework
+    // Multi-channel notification framework
     async notifyAffectedStakeholders(drift) {
         const fileType = this.getFileType(drift.fileName);
         const affectedSystems = this.stakeholderMap.fileTypeDependencies[fileType] || [];
@@ -577,7 +577,7 @@ class LineageSimulation {
             }
         }
         
-        this.log(`✅ Sent ${totalNotificationsSent} notifications to affected stakeholders`, 'success');
+        this.log(`🟢 Sent ${totalNotificationsSent} notifications to affected stakeholders`, 'success');
         this.showToast(`${totalNotificationsSent} stakeholders notified about schema drift`, 'info');
         
         return totalNotificationsSent;
@@ -612,7 +612,7 @@ class LineageSimulation {
     }
 
     async sendEmailNotifications(systemName, system, drift) {
-        this.log(`📧 Sending email notifications for ${systemName}...`, 'info');
+        this.log(`🟡 Sending email notifications for ${systemName}...`, 'info');
         
         let emailsSent = 0;
         for (const email of system.owners) {
@@ -632,7 +632,7 @@ class LineageSimulation {
     }
 
     async sendTeamsNotifications(systemName, system, drift) {
-        this.log(`🟦 Sending Teams notification for ${systemName}...`, 'info');
+        this.log(`🟪 Sending Teams notification for ${systemName}...`, 'info');
         
         const teamsMessage = this.generateTeamsTemplate(systemName, system, drift);
         
@@ -648,7 +648,7 @@ class LineageSimulation {
     }
 
     async sendSlackNotifications(systemName, system, drift) {
-        this.log(`💬 Sending Slack notification for ${systemName}...`, 'info');
+        this.log(`🟧 Sending Slack notification for ${systemName}...`, 'info');
         
         // Simulate Slack API call
         await this.delay(250);
@@ -797,14 +797,14 @@ class LineageSimulation {
         }
     }
 
-    // Phase 3: Notification templates for different channels
+    // Notification templates for different channels
     generateEmailTemplate(systemName, system, drift, recipientEmail) {
         const severityEmoji = {
-            'CRITICAL': '🚨',
-            'HIGH': '⚠️', 
-            'MEDIUM': '⚡',
-            'LOW': '📝'
-        }[drift.severity] || '📄';
+            'CRITICAL': '🔴',
+            'HIGH': '🟠',
+            'MEDIUM': '🔵',
+            'LOW': '🟣'
+        }[drift.severity] || '🔶';
 
         return {
             to: recipientEmail,
@@ -815,13 +815,13 @@ class LineageSimulation {
                 <p>A schema change has been detected in <strong>${drift.fileName}</strong> that may impact your system:</p>
                 
                 <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
-                    <h3>🎯 Affected System: ${systemName}</h3>
+                    <h3>🟥 Affected System: ${systemName}</h3>
                     <p><strong>File:</strong> ${drift.fileName}</p>
                     <p><strong>Severity:</strong> ${drift.severity}</p>
                     <p><strong>Changes:</strong> ${drift.changes.length} column changes detected</p>
                 </div>
 
-                <h4>🔧 Required Actions:</h4>
+                <h4>🔺Required Actions:</h4>
                 <ul>
                     ${drift.changes.map(change => `
                         <li><strong>${change.type}:</strong> ${change.column} (${change.severity})</li>
@@ -861,7 +861,7 @@ class LineageSimulation {
             themeColor: severityColor === 'attention' ? 'FF0000' : severityColor === 'warning' ? 'FFA500' : '0078D4',
             sections: [
                 {
-                    activityTitle: `🚨 Schema Drift Alert`,
+                    activityTitle: `🔺 Schema Drift Alert`,
                     activitySubtitle: `${systemName} may be impacted`,
                     facts: [
                         { name: 'File:', value: drift.fileName },
@@ -893,43 +893,43 @@ class LineageSimulation {
     }
 
     async analyzeFileSchemas() {
-        this.log('🔍 Analyzing file schemas for drift detection (using established column mappings)...', 'info');
-        this.log(`📊 Discovered files count: ${this.discoveredFiles.length}`, 'info');
+        this.log('⚫️ Analyzing file schemas for drift detection (using established column mappings)...', 'info');
+        this.log(`🟢 Discovered files count: ${this.discoveredFiles.length}`, 'info');
         
         for (const file of this.discoveredFiles) {
-            this.log(`🔍 Analyzing file: ${file.fileName}`, 'info');
+            this.log(`⚫️ Analyzing file: ${file.fileName}`, 'info');
             
             // Get current schema for the file
             const currentSchema = this.getSchemaForFileType(file.fileName);
-            this.log(`📋 Current schema: [${currentSchema.join(', ')}]`, 'info');
+            this.log(`🟦 Current schema: [${currentSchema.join(', ')}]`, 'info');
             
             // Simulate schema drift scenarios (80% chance per file for testing)
             const randomValue = Math.random();
             const shouldSimulateDrift = randomValue < 0.8;
-            this.log(`🎲 Drift simulation roll: ${randomValue.toFixed(3)} (threshold: 0.8) → ${shouldSimulateDrift ? 'DRIFT' : 'NO DRIFT'}`, 'info');
+            this.log(`🟣 Drift simulation roll: ${randomValue.toFixed(3)} (threshold: 0.8) → ${shouldSimulateDrift ? 'DRIFT' : 'NO DRIFT'}`, 'info');
             
             if (shouldSimulateDrift) {
                 // Create modified schema to simulate drift
-                this.log(`🔧 Simulating schema drift for ${file.fileName}...`, 'info');
+                this.log(`⚫️ Simulating schema drift for ${file.fileName}...`, 'info');
                 const modifiedSchema = this.simulateSchemaDrift(currentSchema, file.fileName);
-                this.log(`📋 Modified schema: [${modifiedSchema.join(', ')}]`, 'info');
+                this.log(`🟡 Modified schema: [${modifiedSchema.join(', ')}]`, 'info');
                 
                 const driftResult = this.detectSchemaDrift(file.fileName, modifiedSchema);
-                this.log(`🔍 Drift detection result: hasDrift=${driftResult.hasDrift}, changes=${driftResult.changes.length}`, 'info');
+                this.log(`🟢 Drift detection result: hasDrift=${driftResult.hasDrift}, changes=${driftResult.changes.length}`, 'info');
                 
                 if (driftResult.hasDrift) {
                     this.detectedSchemaDrift.push(driftResult);
-                    this.log(`⚠️ Schema drift detected in ${file.fileName}`, 'warning');
+                    this.log(`🟠 Schema drift detected in ${file.fileName}`, 'warning');
                 } else {
-                    this.log(`❌ Drift simulation failed - no changes detected`, 'warning');
+                    this.log(`⛔️ Drift simulation failed - no changes detected`, 'warning');
                 }
             } else {
                 // No drift - schema matches baseline
-                this.log(`✅ No drift simulation for ${file.fileName} - checking baseline`, 'info');
+                this.log(`🟢 No drift simulation for ${file.fileName} - checking baseline`, 'info');
                 const driftResult = this.detectSchemaDrift(file.fileName, currentSchema);
                 if (driftResult.hasDrift) {
                     this.detectedSchemaDrift.push(driftResult);
-                    this.log(`⚠️ Unexpected drift detected in baseline schema for ${file.fileName}`, 'warning');
+                    this.log(`🟥 Unexpected drift detected in baseline schema for ${file.fileName}`, 'warning');
                 }
             }
             
@@ -937,15 +937,15 @@ class LineageSimulation {
         }
         
         if (this.detectedSchemaDrift.length > 0) {
-            this.log(`🔴 Schema drift analysis complete: ${this.detectedSchemaDrift.length} drift events detected (post-mapping validation)`, 'warning');
+            this.log(`🟢 Schema drift analysis complete: ${this.detectedSchemaDrift.length} drift events detected (post-mapping validation)`, 'warning');
             this.showSchemaDriftSection();
             this.showToast(`Schema drift detected in ${this.detectedSchemaDrift.length} files - Column mappings may need updates`, 'warning');
             
             // Phase 3: Notify affected stakeholders
-            this.log('📧 Initiating stakeholder notification process...', 'info');
+            this.log('🟣 Initiating stakeholder notification process...', 'info');
             this.notifyAllAffectedStakeholders();
         } else {
-            this.log('✅ Schema analysis complete: No drift detected', 'success');
+            this.log('🟢 Schema analysis complete: No drift detected', 'success');
             this.hideSchemaDriftSection();
         }
     }
@@ -960,24 +960,24 @@ class LineageSimulation {
             // Add delay between drift notifications for realism
             await this.delay(500);
         }
-        
-        this.log(`📊 Stakeholder notification complete: ${totalNotifications} total notifications sent`, 'success');
-        
+
+        this.log(`🔵 Stakeholder notification complete: ${totalNotifications} total notifications sent`, 'success');
+
         // Update the UI with notification summary
         this.updateNotificationStatusUI();
     }
 
     simulateSchemaDrift(originalSchema, fileName) {
         const fileType = this.getFileType(fileName);
-        this.log(`📁 File type detected: ${fileType}`, 'info');
+        this.log(`🔶 File type detected: ${fileType}`, 'info');
         
         const driftScenarios = this.getHealthcareDriftScenarios(fileType);
-        this.log(`🎲 Available drift scenarios: ${driftScenarios.length}`, 'info');
-        
+        this.log(`🟢 Available drift scenarios: ${driftScenarios.length}`, 'info');
+
         // Pick a random drift scenario
         const scenarioIndex = Math.floor(Math.random() * driftScenarios.length);
         const scenario = driftScenarios[scenarioIndex];
-        this.log(`🎯 Selected scenario: ${scenario.type} - ${scenario.column}`, 'info');
+        this.log(`🟣 Selected scenario: ${scenario.type} - ${scenario.column}`, 'info');
         
         const modifiedSchema = [...originalSchema];
         
@@ -1112,7 +1112,7 @@ class LineageSimulation {
         const drift = this.detectedSchemaDrift[driftIndex];
         const change = drift.changes[changeIndex];
         
-        this.log(`✅ Approved schema change: ${change.column} in ${drift.fileName}`, 'success');
+        this.log(`🟢 Approved schema change: ${change.column} in ${drift.fileName}`, 'success');
         this.showToast(`Schema change approved: ${change.column}`, 'success');
         
         // Mark as resolved and remove from UI
@@ -1124,7 +1124,7 @@ class LineageSimulation {
         const drift = this.detectedSchemaDrift[driftIndex];
         const change = drift.changes[changeIndex];
         
-        this.log(`🔍 Flagged for review: ${change.column} in ${drift.fileName}`, 'warning');
+        this.log(`🔺 Flagged for review: ${change.column} in ${drift.fileName}`, 'warning');
         this.showToast(`Schema change flagged for review: ${change.column}`, 'warning');
         
         drift.changes[changeIndex].status = 'UNDER_REVIEW';
@@ -1134,7 +1134,7 @@ class LineageSimulation {
         const drift = this.detectedSchemaDrift[driftIndex];
         const change = drift.changes[changeIndex];
         
-        this.log(`❌ Rejected schema change: ${change.column} in ${drift.fileName}`, 'error');
+        this.log(`⛔️ Rejected schema change: ${change.column} in ${drift.fileName}`, 'error');
         this.showToast(`Schema change rejected: ${change.column}`, 'error');
         
         drift.changes[changeIndex].status = 'REJECTED';
@@ -1145,7 +1145,7 @@ class LineageSimulation {
         const drift = this.detectedSchemaDrift[driftIndex];
         const change = drift.changes[changeIndex];
         
-        this.log(`📋 Schema Drift Details for ${change.column}:`, 'info');
+        this.log(`🟧 Schema Drift Details for ${change.column}:`, 'info');
         this.log(`  └─ File: ${drift.fileName}`, 'info');
         this.log(`  └─ Type: ${change.type}`, 'info');
         this.log(`  └─ Severity: ${change.severity}`, 'info');
@@ -1157,7 +1157,7 @@ class LineageSimulation {
         
         this.showToast(`Schema drift details logged for ${change.column}`, 'info');
         
-        // Phase 3: Show stakeholder notification status for this change
+        // Show stakeholder notification status for this change
         this.showNotificationStatus(driftIndex, changeIndex);
     }
 
@@ -1165,7 +1165,7 @@ class LineageSimulation {
         const drift = this.detectedSchemaDrift[driftIndex];
         const change = drift.changes[changeIndex];
         
-        this.log(`📧 Notification Status for ${change.column}:`, 'info');
+        this.log(`🔵 Notification Status for ${change.column}:`, 'info');
         
         // Filter notifications for this specific drift
         const relatedNotifications = Array.from(this.notificationStatus.values()).filter(
@@ -1187,7 +1187,7 @@ class LineageSimulation {
             Object.entries(notificationsBySystem).forEach(([system, notifications]) => {
                 this.log(`  └─ ${system}: ${notifications.length} notifications`, 'info');
                 notifications.forEach(notification => {
-                    const statusIcon = notification.acknowledged ? '✅' : notification.status === 'SENT' ? '📧' : '❌';
+                    const statusIcon = notification.acknowledged ? '🟢' : notification.status === 'SENT' ? '🔵' : '⛔️';
                     this.log(`    └─ ${statusIcon} ${notification.channel}: ${notification.recipient}`, 'info');
                 });
             });
@@ -1336,29 +1336,29 @@ class LineageSimulation {
         
         // Force drift on the first file
         const firstFile = this.discoveredFiles[0];
-        this.log(`🎯 Targeting file: ${firstFile.fileName}`, 'info');
+        this.log(`🔶 Targeting file: ${firstFile.fileName}`, 'info');
         
         const currentSchema = this.getSchemaForFileType(firstFile.fileName);
-        this.log(`📋 Original schema: [${currentSchema.join(', ')}]`, 'info');
+        this.log(`🔘 Original schema: [${currentSchema.join(', ')}]`, 'info');
         
         const modifiedSchema = this.simulateSchemaDrift(currentSchema, firstFile.fileName);
-        this.log(`📋 Modified schema: [${modifiedSchema.join(', ')}]`, 'info');
+        this.log(`🟠 Modified schema: [${modifiedSchema.join(', ')}]`, 'info');
         
         const driftResult = this.detectSchemaDrift(firstFile.fileName, modifiedSchema);
         
         if (driftResult.hasDrift) {
             this.detectedSchemaDrift.push(driftResult);
-            this.log(`✅ Forced drift successful: ${driftResult.changes.length} changes detected`, 'success');
+            this.log(`🟢 Forced drift successful: ${driftResult.changes.length} changes detected`, 'success');
             
             // Show the drift section and notify stakeholders
             this.showSchemaDriftSection();
             this.showToast(`Schema drift forced: ${driftResult.changes.length} changes detected`, 'warning');
             
             // Notify stakeholders
-            this.log('📧 Initiating stakeholder notification process...', 'info');
+            this.log('🔵 Initiating stakeholder notification process...', 'info');
             await this.notifyAllAffectedStakeholders();
         } else {
-            this.log('❌ Force drift failed - no changes detected', 'error');
+            this.log('⛔️ Force drift failed - no changes detected', 'error');
             this.showToast('Force drift failed - unable to generate schema changes', 'error');
         }
     }
@@ -1490,7 +1490,7 @@ class LineageSimulation {
         
         // Custom emoji system for activity feed
         const emojis = {
-            info: '🔷',
+            info: '🟣',
             success: '🟢', 
             warning: '🟡',
             error: '🔴',
@@ -1585,15 +1585,15 @@ class LineageSimulation {
         await this.analyzeFileSchemas();
         
         if (this.detectedSchemaDrift.length > 0) {
-            this.log(`📊 Schema drift analysis complete: ${this.detectedSchemaDrift.length} drift events detected during discovery`, 'warning');
+            this.log(`🟢 Schema drift analysis complete: ${this.detectedSchemaDrift.length} drift events detected during discovery`, 'warning');
             this.showSchemaDriftSection();
             this.showToast(`Schema drift detected in ${this.detectedSchemaDrift.length} files during discovery`, 'warning');
             
             // Notify stakeholders about drift found during discovery
-            this.log('📧 Initiating stakeholder notification process...', 'info');
+            this.log('🔵 Initiating stakeholder notification process...', 'info');
             await this.notifyAllAffectedStakeholders();
         } else {
-            this.log('✅ Schema analysis complete: No drift detected in discovered files', 'success');
+            this.log('🟢 Schema analysis complete: No drift detected in discovered files', 'success');
         }
         
         // Update scanner status
@@ -1618,7 +1618,7 @@ class LineageSimulation {
         const isColumnLineageEnabled = document.getElementById('columnLineageToggle').checked;
         if (isColumnLineageEnabled) {
             this.populateColumnLineageTable();
-            this.log('🟥 Column mappings updated with discovered files', 'info');
+            this.log('🟧 Column mappings updated with discovered files', 'info');
         }
 
         // IMPORTANT: Update JSON Generator status to show it's ready

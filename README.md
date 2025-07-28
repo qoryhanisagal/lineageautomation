@@ -90,12 +90,24 @@ POST https://{purview-account}.purview.azure.com/datamap/api/atlas/v2/entity/bul
 
 ## Quick Start
 
+### Running the Demo
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/your-username/json-driven-lineage-automation.git
+```
+
+2. Open `index.html` in your browser
+
+   - No configuration needed - the demo uses mock data
+   - The `.env.example` file is for production use only
+
+3. Click "Start Automation" to begin the interactive demo
+
+> **Note:** This demo simulates Azure operations. For actual Azure integration, see the [Implementation Guide](demo/docs/implementation-guide.md).
+
 ### Prerequisites
-
-#### For Running the Demo
-
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- No installation required - just open `index.html`
 
 #### For Production Implementation
 
@@ -115,7 +127,7 @@ POST https://{purview-account}.purview.azure.com/datamap/api/atlas/v2/entity/bul
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/json-driven-lineage-automation.git
+git clone https://github.com/qoryhanisagal/json-driven-lineage-automation.git
 cd json-driven-lineage-automation
 npm install
 ```
@@ -174,7 +186,7 @@ npm start
 - Severity-based alerting (CRITICAL, HIGH, MEDIUM, LOW)
 - Automated impact analysis with affected system identification
 
-### 👥 Stakeholder Management System
+### Stakeholder Management System
 
 - Enterprise directory integration (sarah.chen@healthcare.com, etc.)
 - Role-based notification routing
