@@ -21,7 +21,7 @@ This framework addresses a critical gap in Microsoft's data governance tooling b
 
 Open `index.html` in your browser for an interactive demonstration of the automation framework.
 
-![Demo Screenshot](docs/demo-screenshot.png)
+<!-- ![Demo Screenshot](docs/demo-screenshot.png) -->
 
 ## Architecture
 
@@ -92,10 +92,25 @@ POST https://{purview-account}.purview.azure.com/datamap/api/atlas/v2/entity/bul
 
 ### Prerequisites
 
-- Node.js 18+
-- Microsoft Purview account
-- Azure service principal with Purview permissions
-- ADLS Gen2 storage account
+#### For Running the Demo
+
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- No installation required - just open `index.html`
+
+#### For Production Implementation
+
+- Node.js 20+ (LTS recommended)
+- Azure subscription with Microsoft Purview instance
+- Service Principal with Purview Data Curator role
+- Azure Data Lake Storage Gen2 account
+- Azure Data Factory (for pipeline orchestration)
+- Azure Key Vault (for credential management)
+
+#### Optional Development Tools
+
+- Node.js 20+ (for running local development server)
+- VS Code with Azure extensions
+- Git for version control
 
 ### Installation
 
@@ -129,6 +144,43 @@ npm start
 # Open index.html in your browser
 ```
 
+## Key Features
+
+### Automated Lineage Discovery
+
+- Scans ADLS Gen2 containers for new files with real-time monitoring
+- Automatically maps files to their processing pipelines
+- Detects schema changes and data drift with 80% test probability
+- Generates Purview-compliant JSON payloads with full metadata
+
+### Intelligent Pipeline Mapping
+
+- Pattern-based file-to-pipeline association with healthcare context
+- Support for complex multi-step transformations
+- Handles both batch and streaming scenarios
+- Configurable mapping rules with business logic integration
+
+### Column-Level Lineage Tracking
+
+- Granular column transformation tracking with Azure SQL mapping
+- Business rule documentation with HIPAA compliance context
+- Data type mapping and validation with healthcare-specific constraints
+- Impact analysis for schema changes with severity assessment
+
+### Schema Drift Detection & Notification
+
+- Real-time schema drift detection during file discovery
+- Multi-channel stakeholder notifications (Email, Teams, Slack)
+- Severity-based alerting (CRITICAL, HIGH, MEDIUM, LOW)
+- Automated impact analysis with affected system identification
+
+### 👥 Stakeholder Management System
+
+- Enterprise directory integration (sarah.chen@healthcare.com, etc.)
+- Role-based notification routing
+- Escalation rules based on severity
+- Complete audit trail for compliance (HIPAA, CMS, FDA)
+
 ## Business Value
 
 ### Scale Benefits
@@ -147,47 +199,38 @@ npm start
 ## Project Structure
 
 ```
-├── index.html                    # Interactive demo interface
-├── lineage-automation.js         # Core framework logic
-├── package.json                  # Dependencies and scripts
-├── .env.example                  # Configuration template
-├── src/
-│   ├── lineage-core.js           # Core automation logic
-│   ├── purview-client.js         # Purview API wrapper
-│   ├── file-scanner.js           # ADLS scanning logic
-│   └── pipeline-mapper.js        # File-to-pipeline mapping
+json-driven-lineage-automation/
+├── index.html                      # Interactive demo interface
+├── whiteboard.html                 # Whiteboard/planning interface
+├── lineage-automation.js           # Core automation framework
 ├── demo/
-│   ├── simulation.js             # Frontend simulation
-│   └── mock-data.js              # Sample data
-├── docs/
-│   ├── technical-approach.md     # Detailed documentation
-│   ├── api-reference.md          # API integration guide
-│   └── sample-outputs/           # JSON examples
-└── tests/
-    ├── lineage-automation.test.js # Unit tests
-    └── sample-responses.json      # Mock API responses
+│   ├── simulation.js               # Demo simulation engine
+│   ├── mock-data.js                # Sample healthcare data
+│   ├── column_level_lineage.js    # Column-level lineage tracking
+│   └── docs/
+│       ├── technical-approach.md   # Technical architecture
+│       ├── implementation-guide.md # Setup and deployment guide
+│       ├── api-reference.md        # API documentation
+│       ├── fabric-medallion-integration.md # Fabric integration guide
+│       ├── test/
+│       │   └── lineage-automation.test.js # Test specifications
+│       └── sample-outputs/
+│           └── lineage-payload.json # Example JSON output
+├── .env.example                    # Environment variables template
+├── .gitignore                      # Git ignore rules
+└── README.md                       # Project documentation
 ```
 
-## Advanced Configuration
+## Extending the Demo
 
-### Custom Pipeline Mapping
+To customize the demo for your use case:
 
-Extend the pipeline mapping logic in `src/pipeline-mapper.js`:
+1. **Modify sample data** - Edit `demo/mock-data.js` to reflect your file types
+2. **Adjust schema definitions** - Update `initializeBaselineSchemas()` in `demo/simulation.js`
+3. **Customize stakeholder mappings** - Edit `initializeStakeholderMapping()` for your organization
+4. **Add new file types** - Extend the pattern matching in `getFileType()`
 
-```javascript
-const pipelineMapping = {
-  claims_: {
-    pipelineName: 'transform_claims_pipeline',
-    destinationTable: 'processed_claims',
-    transformationType: 'standardization_and_validation',
-  },
-  your_prefix_: {
-    pipelineName: 'your_custom_pipeline',
-    destinationTable: 'your_table',
-    transformationType: 'your_transformation',
-  },
-};
-```
+For production implementation guidance, see [Implementation Guide](demo/docs/implementation-guide.md).
 
 ### Schema Evolution Handling
 
@@ -197,29 +240,18 @@ The framework automatically adapts to schema changes by:
 - Updating JSON payloads with current schema information
 - Maintaining lineage relationships across schema versions
 
-## Testing
-
-```bash
-# Run unit tests
-npm test
-
-# Test with mock data (no API calls)
-node tests/mock-test.js
-```
-
 ## Documentation
 
-- [Technical Approach](docs/technical-approach.md) - Detailed implementation guide
-- [API Reference](docs/api-reference.md) - Purview REST API integration
-- [Sample Outputs](docs/sample-outputs/) - Example JSON payloads and responses
+- [Technical Architecture](demo/docs/technical-approach.md) - Deep dive into the framework design
+- [Implementation Guide](demo/docs/implementation-guide.md) - Step-by-step deployment instructions
+- [API Reference](demo/docs/api-reference.md) - Detailed API documentation
+- [Fabric Integration](demo/docs/fabric-medallion-integration.md) - Microsoft Fabric medallion architecture guide
+- [Test Specifications](demo/docs/test/lineage-automation.test.js) - Testing guidelines and examples
+- [Sample JSON Output](demo/docs/sample-outputs/lineage-payload.json) - Example lineage payload
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
@@ -229,8 +261,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Koiree (Sequoyah Dozier)**
 
-- Email: [your-email@domain.com]
-- LinkedIn: [Your LinkedIn Profile]
+LinkedIn: [linkedin.com/in/sequoyahdozier](https://www.linkedin.com/in/sequoyahdozier)
 
 ## Related Resources
 
@@ -241,4 +272,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **Built with care for enterprise data governance at scale**
+
 # lineageautomation
