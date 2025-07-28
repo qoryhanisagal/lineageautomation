@@ -26,7 +26,7 @@ This **production-ready automation framework** addresses the exact challenges ou
 - **Dynamic lineage registration frameworks** that adapt to pipeline evolution
 - **Column-level transformation tracking** with governance-first approach
 
-## ◇ Live Interactive Demo
+## ◆ Live Interactive Demo
 
 <div align="center">
 
