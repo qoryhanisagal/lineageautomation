@@ -13,7 +13,7 @@ class LineageSimulation {
         this.detectedSchemaDrift = [];
         this.baselineSchemas = this.initializeBaselineSchemas();
         
-        // Phase 3: Stakeholder notification system
+        // Stakeholder notification system
         this.stakeholderMap = this.initializeStakeholderMapping();
         this.notificationQueue = [];
         this.notificationStatus = new Map(); // Track delivery status
@@ -151,7 +151,7 @@ class LineageSimulation {
             if (columnMappingCard) {
                 columnMappingCard.style.display = 'none';
             }
-            // Option 2: Hide schema drift section when column lineage is disabled
+            // Hide schema drift section when column lineage is disabled
             this.hideSchemaDriftSection();
             this.detectedSchemaDrift = []; // Clear drift data
         }
@@ -164,11 +164,11 @@ class LineageSimulation {
             columnMappingCard.style.display = 'block';
             this.populateColumnLineageTable();
             
-            // Option A: Schema drift now happens during file discovery, not here
+            // Schema drift happens during file discovery, not here
             // Column lineage can enhance drift analysis but doesn't trigger it
             if (this.detectedSchemaDrift.length > 0) {
                 this.log('📊 Column mappings established - enhancing existing drift analysis with mapping context', 'info');
-                // Could add additional drift analysis specific to column mappings here if needed
+                // Add additional drift analysis specific to column mappings
             } else {
                 this.log('📊 Column mappings established - no schema drift detected during discovery', 'info');
             }
@@ -378,8 +378,8 @@ class LineageSimulation {
     showColumnDetails(columnName) {
         this.log(`📋 Showing detailed lineage for column: ${columnName}`, 'info');
         this.showToast(`Column Details: ${columnName} - See activity log for lineage trace`, 'info');
-        
-        // Enhanced logging with column-specific details
+
+        // Logging with column-specific details
         this.log(`  └─ Source: CSV file column`, 'info');
         this.log(`  └─ Transformations: Validation → Cleansing → Type conversion`, 'info');
         this.log(`  └─ Target: Azure SQL table column with constraints`, 'info');
@@ -486,7 +486,7 @@ class LineageSimulation {
     }
 
     initializeStakeholderMapping() {
-        // Phase 3: Map data systems to stakeholders who should be notified of changes
+        // Map data systems to stakeholders who should be notified of changes
         return {
             // System-to-stakeholder mappings
             systems: {
