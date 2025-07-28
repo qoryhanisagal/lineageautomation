@@ -1,0 +1,97 @@
+/* Custom Corporate Theme with Vibrant Colors */
+:root {
+  /* Base colors */
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(93% 0 0);
+  --color-base-300: oklch(86% 0 0);
+  --color-base-content: oklch(22.389% 0.031 278.072);
+
+  /* Navigation colors */
+  --color-nav: oklch(0.9738 0.0045 78.3);
+  /* Brand colors - More vibrant */
+  --color-primary: oklch(58% 0.158 241.966);
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: oklch(55% 0.046 257.417);
+  --color-secondary-content: oklch(100% 0 0);
+  --color-accent: oklch(60% 0.118 184.704);
+  --color-accent-content: oklch(100% 0 0);
+
+  /* Utility colors */
+  --color-neutral: oklch(0% 0 0);
+  --color-neutral-content: oklch(100% 0 0);
+  --color-info: oklch(60% 0.126 221.723);
+  --color-info-content: oklch(100% 0 0);
+  --color-success: oklch(65% 0.22 149.214); /* More vibrant green */
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(85% 0.199 91.936);
+  --color-warning-content: oklch(0% 0 0);
+  --color-error: oklch(70% 0.191 22.216);
+  --color-error-content: oklch(0% 0 0);
+
+  /* Border radius */
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
+
+  /* Sizes */
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  /* Border and effects */
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Apply theme colors to daisyUI classes */
+.btn-primary {
+  background-color: oklch(58% 0.158 241.966);
+  border-color: oklch(58% 0.158 241.966);
+  color: oklch(100% 0 0);
+}
+
+.btn-success {
+  background-color: oklch(65% 0.22 149.214); /* More vibrant green */
+  border-color: oklch(65% 0.22 149.214);
+  color: oklch(100% 0 0);
+}
+
+.btn-accent {
+  background-color: oklch(60% 0.118 184.704);
+  border-color: oklch(60% 0.118 184.704);
+  color: oklch(100% 0 0);
+}
+
+.badge-success {
+  background-color: oklch(65% 0.22 149.214); /* More vibrant green */
+  color: oklch(100% 0 0);
+}
+
+.text-success {
+  color: oklch(65% 0.22 149.214) !important; /* More vibrant green */
+}
+
+/* Enhanced card gradients with vibrant colors */
+.card-gradient-info {
+  background: linear-gradient(
+    135deg,
+    oklch(60% 0.126 221.723 / 0.15) 0%,
+    oklch(60% 0.118 184.704 / 0.1) 100%
+  );
+}
+
+.card-gradient-warning {
+  background: linear-gradient(
+    135deg,
+    oklch(85% 0.199 91.936 / 0.15) 0%,
+    oklch(70% 0.191 22.216 / 0.1) 100%
+  );
+}
+
+.card-gradient-success {
+  background: linear-gradient(
+    135deg,
+    oklch(65% 0.22 149.214 / 0.15) 0%,
+    oklch(60% 0.118 184.704 / 0.1) 100%
+  );
+}

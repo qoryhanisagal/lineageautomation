@@ -134,71 +134,304 @@ class LineageSimulation {
 
     updateColumnLineageMode() {
         const isEnabled = document.getElementById('columnLineageToggle').checked;
+        const columnMappingCard = document.getElementById('columnMappingCard');
+        
         if (isEnabled) {
             this.log('🟥 Column-level lineage tracking enabled for Azure SQL tables', 'info');
             this.showColumnLineageAnalysis();
         } else {
             this.log('Column-level lineage tracking disabled', 'info');
+            if (columnMappingCard) {
+                columnMappingCard.style.display = 'none';
+            }
         }
     }
 
     showColumnLineageAnalysis() {
         // Display Azure SQL column lineage mapping table
-        const columnLineageSection = document.getElementById('columnLineageMapping');
-        if (columnLineageSection) {
-            columnLineageSection.style.display = 'block';
+        const columnMappingCard = document.getElementById('columnMappingCard');
+        if (columnMappingCard) {
+            columnMappingCard.style.display = 'block';
             this.populateColumnLineageTable();
         }
     }
 
     populateColumnLineageTable() {
-        const tableBody = document.getElementById('columnMappingTableBody');
+        const tableBody = document.getElementById('columnMappingTable');
         if (!tableBody) return;
 
-        const columnMappings = [
-            {
-                sourceColumn: 'claim_id',
-                targetColumn: 'claim_identifier', 
-                transformation: 'RENAME',
-                impact: 'HIGH',
-                azureSqlDataType: 'VARCHAR(50)',
-                azureSqlConstraints: 'PRIMARY KEY, NOT NULL'
-            },
-            {
-                sourceColumn: 'amount',
-                targetColumn: 'claim_amount_usd',
-                transformation: 'CURRENCY_CONVERSION', 
-                impact: 'MEDIUM',
-                azureSqlDataType: 'DECIMAL(10,2)',
-                azureSqlConstraints: 'NOT NULL, CHECK (claim_amount_usd >= 0)'
-            },
-            {
-                sourceColumn: 'patient_id',
-                targetColumn: 'patient_reference_id',
-                transformation: 'ANONYMIZATION',
-                impact: 'HIGH', 
-                azureSqlDataType: 'VARCHAR(64)',
-                azureSqlConstraints: 'NOT NULL, INDEX IX_patient_reference'
-            }
-        ];
-
+        // Generate dynamic column mappings based on discovered files
+        const columnMappings = this.generateDynamicColumnMappings();
+        
         tableBody.innerHTML = '';
-        columnMappings.forEach(mapping => {
+        columnMappings.forEach((mapping, index) => {
             const row = document.createElement('tr');
             const impactEmoji = this.getImpactEmoji(mapping.impact);
+            const transformationColor = this.getTransformationColor(mapping.transformation);
+            const impactColor = this.getImpactColor(mapping.impact);
             
+            row.className = 'hover:bg-base-200 transition-colors';
             row.innerHTML = `
                 <td class="text-sm font-medium">${mapping.sourceColumn}</td>
+                <td class="text-sm"><span class="badge ${transformationColor} badge-sm">${mapping.transformation}</span></td>
                 <td class="text-sm font-medium text-primary">${mapping.targetColumn}</td>
-                <td class="text-sm"><span class="badge badge-outline badge-sm">${mapping.transformation}</span></td>
-                <td class="text-sm">${impactEmoji} <span class="badge badge-outline badge-sm">${mapping.impact}</span></td>
-                <td class="text-sm font-mono text-xs">${mapping.azureSqlDataType}</td>
-                <td class="text-sm text-xs">${mapping.azureSqlConstraints}</td>
+                <td class="text-sm">
+                    <div class="font-mono text-xs text-info">${mapping.azureSqlDataType}</div>
+                    <div class="text-xs text-base-content/60">${mapping.azureSqlConstraints}</div>
+                </td>
+                <td class="text-sm">
+                    <div class="tooltip tooltip-left" data-tip="${mapping.businessRule}">
+                        <div class="text-xs cursor-help">${mapping.businessRuleShort}</div>
+                    </div>
+                </td>
+                <td class="text-sm">
+                    ${impactEmoji} <span class="badge ${impactColor} badge-xs">${mapping.impact}</span>
+                    <div class="text-xs text-base-content/50 mt-1">
+                        <button class="btn btn-ghost btn-xs" onclick="window.lineageSimulation.showColumnDetails('${mapping.sourceColumn}')">
+                            <i class="fas fa-info-circle text-xs"></i>
+                        </button>
+                    </div>
+                </td>
             `;
             tableBody.appendChild(row);
         });
 
-        this.log('🟥 Azure SQL column mappings populated with data types and constraints', 'success');
+        // Update Azure SQL connection stats
+        this.updateAzureSqlStats(columnMappings.length);
+        
+        this.log(`🟥 Generated ${columnMappings.length} dynamic column mappings from discovered files`, 'success');
+    }
+
+    generateDynamicColumnMappings() {
+        if (!this.discoveredFiles || this.discoveredFiles.length === 0) {
+            return this.getDefaultColumnMappings();
+        }
+
+        const mappings = [];
+        
+        this.discoveredFiles.forEach(file => {
+            const fileType = this.getFileType(file.fileName);
+            const fileColumns = this.getSchemaForFileType(file.fileName);
+            const targetMappings = this.getAzureSqlMappings(fileType);
+            
+            fileColumns.slice(0, 3).forEach((sourceColumn, index) => {
+                if (targetMappings[index]) {
+                    mappings.push({
+                        sourceColumn: sourceColumn,
+                        targetColumn: targetMappings[index].target,
+                        transformation: targetMappings[index].transformation,
+                        impact: targetMappings[index].impact,
+                        azureSqlDataType: targetMappings[index].dataType,
+                        azureSqlConstraints: targetMappings[index].constraints,
+                        businessRule: targetMappings[index].businessRule,
+                        businessRuleShort: targetMappings[index].businessRuleShort,
+                        fileSource: file.fileName
+                    });
+                }
+            });
+        });
+
+        return mappings.length > 0 ? mappings : this.getDefaultColumnMappings();
+    }
+
+    getAzureSqlMappings(fileType) {
+        const mappings = {
+            'claims': [
+                {
+                    target: 'claim_identifier',
+                    transformation: 'RENAME_VALIDATE',
+                    impact: 'CRITICAL',
+                    dataType: 'VARCHAR(50) NOT NULL',
+                    constraints: 'PRIMARY KEY, UNIQUE INDEX',
+                    businessRule: 'Claims must have unique identifiers for tracking through the healthcare system',
+                    businessRuleShort: 'Unique claim tracking'
+                },
+                {
+                    target: 'patient_reference_id',
+                    transformation: 'ANONYMIZATION',
+                    impact: 'HIGH',
+                    dataType: 'VARCHAR(64) NOT NULL',
+                    constraints: 'FOREIGN KEY, INDEX IX_patient',
+                    businessRule: 'Patient IDs are anonymized for HIPAA compliance while maintaining referential integrity',
+                    businessRuleShort: 'HIPAA anonymization'
+                },
+                {
+                    target: 'provider_network_id',
+                    transformation: 'LOOKUP_ENRICHMENT',
+                    impact: 'MEDIUM',
+                    dataType: 'VARCHAR(32)',
+                    constraints: 'FOREIGN KEY, INDEX IX_provider',
+                    businessRule: 'Provider IDs are enriched with network information for contract validation',
+                    businessRuleShort: 'Network validation'
+                }
+            ],
+            'providers': [
+                {
+                    target: 'provider_master_id',
+                    transformation: 'DEDUPLICATION',
+                    impact: 'HIGH',
+                    dataType: 'VARCHAR(32) NOT NULL',
+                    constraints: 'PRIMARY KEY, UNIQUE',
+                    businessRule: 'Provider deduplication ensures single source of truth for billing',
+                    businessRuleShort: 'Master record creation'
+                },
+                {
+                    target: 'npi_validated',
+                    transformation: 'EXTERNAL_VALIDATION',
+                    impact: 'CRITICAL',
+                    dataType: 'VARCHAR(10) NOT NULL',
+                    constraints: 'CHECK (LEN(npi_validated) = 10)',
+                    businessRule: 'NPI numbers validated against CMS registry for compliance',
+                    businessRuleShort: 'CMS validation'
+                },
+                {
+                    target: 'specialty_standardized',
+                    transformation: 'STANDARDIZATION',
+                    impact: 'MEDIUM',
+                    dataType: 'VARCHAR(100)',
+                    constraints: 'FOREIGN KEY specialty_codes',
+                    businessRule: 'Specialty codes standardized to industry taxonomy',
+                    businessRuleShort: 'Taxonomy mapping'
+                }
+            ],
+            'patients': [
+                {
+                    target: 'patient_master_key',
+                    transformation: 'HASH_GENERATION',
+                    impact: 'CRITICAL',
+                    dataType: 'VARCHAR(64) NOT NULL',
+                    constraints: 'PRIMARY KEY, UNIQUE',
+                    businessRule: 'Patient master key generated from hashed PII for privacy protection',
+                    businessRuleShort: 'Privacy protection'
+                },
+                {
+                    target: 'demographics_encrypted',
+                    transformation: 'FIELD_ENCRYPTION',
+                    impact: 'HIGH',
+                    dataType: 'VARBINARY(MAX)',
+                    constraints: 'ENCRYPTED, NOT NULL',
+                    businessRule: 'Demographics encrypted at rest for enhanced security',
+                    businessRuleShort: 'Data encryption'
+                },
+                {
+                    target: 'address_standardized',
+                    transformation: 'ADDRESS_CLEANSING',
+                    impact: 'MEDIUM',
+                    dataType: 'NVARCHAR(200)',
+                    constraints: 'INDEX IX_address_lookup',
+                    businessRule: 'Addresses standardized using USPS validation service',
+                    businessRuleShort: 'USPS validation'
+                }
+            ]
+        };
+
+        return mappings[fileType] || mappings['claims'];
+    }
+
+    getDefaultColumnMappings() {
+        return [
+            {
+                sourceColumn: 'claim_id',
+                targetColumn: 'claim_identifier',
+                transformation: 'RENAME_VALIDATE',
+                impact: 'CRITICAL',
+                azureSqlDataType: 'VARCHAR(50) NOT NULL',
+                azureSqlConstraints: 'PRIMARY KEY, UNIQUE INDEX',
+                businessRule: 'Claims must have unique identifiers for tracking',
+                businessRuleShort: 'Unique tracking'
+            }
+        ];
+    }
+
+    updateAzureSqlStats(columnCount) {
+        // Update the Azure SQL connection stats with real-time info
+        const serverElement = document.getElementById('azureSqlServer');
+        const databaseElement = document.getElementById('azureSqlDatabase');
+        const schemaVersionElement = document.getElementById('azureSqlSchemaVersion');
+        const resourceGroupElement = document.getElementById('azureResourceGroup');
+
+        if (serverElement) serverElement.textContent = 'healthcare-sql-server.database.windows.net';
+        if (databaseElement) databaseElement.textContent = 'ClaimsDB';
+        if (schemaVersionElement) schemaVersionElement.textContent = '2.1';
+        if (resourceGroupElement) resourceGroupElement.textContent = 'rg-healthcare-prod';
+    }
+
+    showColumnDetails(columnName) {
+        this.log(`📋 Showing detailed lineage for column: ${columnName}`, 'info');
+        this.showToast(`Column Details: ${columnName} - See activity log for lineage trace`, 'info');
+        
+        // Enhanced logging with column-specific details
+        this.log(`  └─ Source: CSV file column`, 'info');
+        this.log(`  └─ Transformations: Validation → Cleansing → Type conversion`, 'info');
+        this.log(`  └─ Target: Azure SQL table column with constraints`, 'info');
+        this.log(`  └─ Data lineage tracked through Purview`, 'success');
+    }
+
+    exportColumnMappings() {
+        const columnMappings = this.generateDynamicColumnMappings();
+        
+        if (columnMappings.length === 0) {
+            this.showToast('No column mappings to export', 'warning');
+            return;
+        }
+
+        // Create CSV content
+        const csvHeader = 'Source Column,Transformation,Target Column,Data Type,Constraints,Business Rule,Impact,File Source\n';
+        const csvContent = columnMappings.map(mapping => 
+            `"${mapping.sourceColumn}","${mapping.transformation}","${mapping.targetColumn}","${mapping.azureSqlDataType}","${mapping.azureSqlConstraints}","${mapping.businessRule}","${mapping.impact}","${mapping.fileSource || 'N/A'}"`
+        ).join('\n');
+
+        const fullCsv = csvHeader + csvContent;
+        
+        // Create and download file
+        const blob = new Blob([fullCsv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `azure-sql-column-mappings-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showToast('Column mappings exported successfully!', 'success');
+        this.log(`🟢 Exported ${columnMappings.length} column mappings to CSV file`, 'success');
+    }
+
+    getTransformationColor(transformation) {
+        const colors = {
+            'RENAME_VALIDATE': 'badge-info',
+            'ANONYMIZATION': 'badge-warning',
+            'LOOKUP_ENRICHMENT': 'badge-success',
+            'DEDUPLICATION': 'badge-primary',
+            'EXTERNAL_VALIDATION': 'badge-error',
+            'STANDARDIZATION': 'badge-accent',
+            'HASH_GENERATION': 'badge-secondary',
+            'FIELD_ENCRYPTION': 'badge-warning',
+            'ADDRESS_CLEANSING': 'badge-info'
+        };
+        return colors[transformation] || 'badge-outline';
+    }
+
+    getImpactColor(impact) {
+        const colors = {
+            'LOW': 'badge-success',
+            'MEDIUM': 'badge-warning',
+            'HIGH': 'badge-error',
+            'CRITICAL': 'badge-error'
+        };
+        return colors[impact] || 'badge-outline';
+    }
+
+    getFileType(fileName) {
+        if (fileName.includes('claims')) return 'claims';
+        if (fileName.includes('providers')) return 'providers';
+        if (fileName.includes('patients')) return 'patients';
+        if (fileName.includes('procedures')) return 'procedures';
+        if (fileName.includes('medications')) return 'medications';
+        if (fileName.includes('lab_results')) return 'lab_results';
+        return 'claims'; // default
     }
 
     getImpactEmoji(impact) {
@@ -359,11 +592,15 @@ class LineageSimulation {
         this.isRunning = true;
         this.currentStep = 1;
 
+        // Clear activity log for new automation cycle
+        document.getElementById('activityLog').innerHTML = '';
+        
         // Update UI
         document.getElementById('startScan').disabled = true;
         document.getElementById('scannerReady').classList.add('hidden');
         document.getElementById('scannerLoading').classList.remove('hidden');
 
+        this.log('🔷 Starting new automation cycle...');
         this.log('Starting directory scan on ADLS Gen2 container: claims-data');
         this.log('Connecting to Azure Storage Account...');
 
@@ -395,6 +632,13 @@ class LineageSimulation {
 
         // Populate file list
         this.populateFileList();
+
+        // Update column lineage mapping if enabled
+        const isColumnLineageEnabled = document.getElementById('columnLineageToggle').checked;
+        if (isColumnLineageEnabled) {
+            this.populateColumnLineageTable();
+            this.log('🟥 Column mappings updated with discovered files', 'info');
+        }
 
         // IMPORTANT: Update JSON Generator status to show it's ready
         document.getElementById('generatorReady').innerHTML = '<i class="fas fa-check-circle text-success mr-2"></i>Ready to generate';

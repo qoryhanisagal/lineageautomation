@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON-Driven Lineage Automation Framework - Interactive Demo</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="demo/custom-theme.css">
     <style>
@@ -365,7 +365,7 @@
             </div>
         </div>
 
-        <!-- Enhanced File Discovery -->
+        <!-- Automated File Discovery -->
         <div class="card bg-gradient-to-br from-info/5 to-info/10 shadow-2xl border border-info/20 rounded-3xl">
             <div class="card-body">
                 <div class="flex items-center justify-between mb-4">
@@ -470,7 +470,7 @@
                     Column-Level Lineage Mapping
                 </h3>
                 <div class="tooltip tooltip-left" data-tip="Shows Azure SQL column details, data types, constraints, and business rules">
-                    <div class="badge badge-purple badge-outline">Enhanced Mode</div>
+                    <div class="badge badge-success">Active</div>
                 </div>
             </div>
 
@@ -488,9 +488,9 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div class="stat bg-base-100 rounded-lg shadow-sm min-w-0">
+                    <div class="stat bg-base-100 rounded-lg shadow-sm min-w-0 overflow-hidden">
                         <div class="stat-title text-xs">Server</div>
-                        <div class="stat-value text-xs lg:text-sm break-all" id="azureSqlServer">healthcare-sql-server.database.windows.net</div>
+                        <div class="stat-value text-xs break-words overflow-hidden" id="azureSqlServer">healthcare-sql-server.database.windows.net</div>
                         <div class="stat-desc text-xs">Azure SQL Database</div>
                     </div>
                     <div class="stat bg-base-100 rounded-lg shadow-sm min-w-0">
