@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulation.js Test</title>
+</head>
+<body>
+    <h1>Testing simulation.js</h1>
+    <div id="console-output"></div>
+    
+    <script>
+        // Override console to capture errors
+        const originalConsoleError = console.error;
+        const outputDiv = document.getElementById('console-output');
+        
+        console.error = function(...args) {
+            outputDiv.innerHTML += '<div style="color: red;">ERROR: ' + args.join(' ') + '</div>';
+            originalConsoleError.apply(console, arguments);
+        };
+        
+        console.log = function(...args) {
+            outputDiv.innerHTML += '<div style="color: blue;">LOG: ' + args.join(' ') + '</div>';
+        };
+        
+        // Test loading simulation.js
+        try {
+            console.log('Loading simulation.js...');
+        } catch (error) {
+            console.error('Failed to load simulation.js:', error.message);
+        }
+    </script>
+    
+    <!-- Load the simulation file -->
+    <script src="demo/simulation.js"></script>
+    
+    <script>
+        // Test if LineageSimulation class is available
+        setTimeout(() => {
+            try {
+                if (typeof LineageSimulation !== 'undefined') {
+                    console.log('✓ LineageSimulation class loaded successfully');
+                    
+                    // Try to create an instance
+                    const sim = new LineageSimulation();
+                    console.log('✓ LineageSimulation instance created successfully');
+                } else {
+                    console.error('✗ LineageSimulation class not found');
+                }
+            } catch (error) {
+                console.error('✗ Error creating LineageSimulation:', error.message);
+                console.error('Stack trace:', error.stack);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
