@@ -2252,8 +2252,8 @@ function shareDemo() {
 
 I wanted to share this interactive demonstration of an automated data lineage framework for Microsoft Purview:
 
-🔗 Demo: ${window.location.href}
-📋 GitHub: https://github.com/qoryhanisagal/lineageautomation
+<i class="fas fa-play-circle"></i> Demo: ${window.location.href}
+<i class="fab fa-github"></i> GitHub: https://github.com/qoryhanisagal/lineageautomation
 
 Key Features:
 • Automated schema drift detection
