@@ -53,16 +53,16 @@
         <div class="navbar-end">
             <div class="flex items-center gap-3">
                 <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button" class="btn btn-ghost" onclick="this.blur()">
+                    <div tabindex="0" role="button" class="btn btn-ghost">
                         <i class="fas fa-bars text-xl"></i>
                     </div>
                     <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                         <li><a><i class="fas fa-home mr-2"></i>Dashboard</a></li>
                         <li><a><i class="fas fa-cog mr-2"></i>Settings</a></li>
-                        <li><a><i class="fas fa-book mr-2"></i>Documentation</a></li>
+                        <li><a href="https://github.com/qoryhanisagal/lineageautomation" target="_blank"><i class="fas fa-book mr-2"></i>Documentation</a></li>
                         <div class="divider my-1"></div>
-                        <li><a><i class="fas fa-download mr-2"></i>Export Results</a></li>
-                        <li><a><i class="fas fa-share mr-2"></i>Share Demo</a></li>
+                        <li><a onclick="exportDemoReport()"><i class="fas fa-download mr-2"></i>Export Demo Report</a></li>
+                        <li><a onclick="shareDemo()"><i class="fas fa-share mr-2"></i>Share Demo</a></li>
                     </ul>
                 </div>
             </div>
@@ -192,13 +192,13 @@
                             <i class="fas fa-cloud"></i>
                             Register in Purview
                         </button>
-                        <button class="btn btn-error btn-outline btn-sm gap-1 px-2 hover:scale-105 transition-all rounded-full" id="reset">
-                            <i class="fas fa-undo"></i>
-                            Reset
-                        </button>
                         <button class="btn btn-accent btn-outline btn-sm gap-1 hover:scale-105 transition-all rounded-full" onclick="window.lineageSimulation.forceSchemaDrift()" title="Force schema drift for testing">
                             <i class="fas fa-bolt"></i>
                             Force Schema Drift
+                        </button>
+                        <button class="btn btn-error btn-outline btn-sm gap-1 px-2 hover:scale-105 transition-all rounded-full" id="reset">
+                            <i class="fas fa-undo"></i>
+                            Reset
                         </button>
                     </div>
                 </div>
@@ -215,7 +215,7 @@
         </div>
     </div>
 
-    <!-- Enhanced Status Dashboard -->
+    <!-- Status Dashboard -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         <!-- File Scanner Status -->
         <div class="card bg-gradient-to-br from-info/20 to-cyan/20 shadow-2xl border border-info/40 hover:shadow-3xl hover:scale-105 transition-all rounded-3xl">
@@ -740,6 +740,7 @@
 <script src="demo/mock-data.js"></script>
 <script src="demo/column_level_lineage.js"></script>
 <script src="demo/simulation.js"></script>
+
 
 </div>
 </body>
