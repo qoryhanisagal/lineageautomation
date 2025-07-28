@@ -60,17 +60,27 @@ graph TD
 - **Schema**: Business-focused views and calculations
 - **Governance**: Full semantic layer with business context
 
+## Schema Drift Management Strategy
+
+### Core Problem Statement
+
+**Requirement:** Data sources change their schemas constantly - following a progression where schema version A becomes B, then C, then D, then E, with each version introducing breaking changes that must still be tracked through data pipeline lineage.
+
+**The Challenge:** Data pipeline lineage requirements mandate that all incoming data must be cataloged and tracked regardless of schema drift - meaning that regardless of how schemas change, the lineage system **must** handle it. You can't just ignore changed data or refuse to catalog it because the schema is different.
+
+**What the Execution looks like:** Whatever lineage tracking system is implemented has to automatically detect schema drift at file discovery level, accept and catalog data through pipelines even when schemas evolve, without manual intervention or data rejection.
+
 ## How Schema Drift Impacts Each Layer
 
 ### Bronze Layer Reality
 
-Kevin's key point: **"There's no option to not bring in this metadata and understand it"**
+Enterprise requirement: **All incoming data must have lineage tracked regardless of schema drift at file discovery level**
 
 ```javascript
 // Bronze layer must handle ANY schema that arrives
 class BronzeLevelHandler {
   async handleSchemaEvolution(incomingFile, existingSchema) {
-    // Kevin's requirement: "It was A, now it's B, then C, then D, then E"
+    // Enterprise requirement: Handle schema evolution A→B→C→D→E in pipeline lineage
     // We MUST catalog everything, regardless of changes
 
     const schemaComparison = this.compareSchemas(
@@ -299,10 +309,6 @@ class BusinessGlossaryIntegration {
 }
 ```
 
-## Schema Drift Management Strategy
-
-### Kevin's Challenge: "Whatever I'm doing in my catalog has to deal with that"
-
 **Automated Schema Evolution Handling:**
 
 ```javascript
@@ -326,7 +332,7 @@ class SchemaDriftManager {
   }
 
   catalogBronzeSchemaChange(driftAnalysis) {
-    // Kevin's requirement: No option to exclude changed data
+    // Enterprise requirement: No option to exclude changed data
     return {
       action: 'CATALOG_ALL',
       newSchemaVersion: this.incrementSchemaVersion(),
@@ -340,14 +346,14 @@ class SchemaDriftManager {
 }
 ```
 
-### Multi-Pipeline Lineage (Kevin's "24 data feeds")
+### Multi-Pipeline Lineage (High-Volume Data Pipeline Tracking)
 
 **Handling Complex Data Flows:**
 
 ```javascript
 class MultiPipelineLineageManager {
   async registerComplexDataFlow(dataSources) {
-    // Handle Kevin's scenario: "24 data feeds being used at once"
+    // Handle Enterprise scenario: Multiple concurrent data pipeline feeds requiring consolidated lineage tracking
     const consolidatedLineage = {
       entities: [],
       relationships: [],
@@ -386,7 +392,7 @@ class MultiPipelineLineageManager {
 ```javascript
 class FabricMedallionLineageFramework extends LineageAutomationFramework {
   async processFabricDataFlow(fileInfo) {
-    // 1. Bronze layer processing (Kevin's "must catalog everything")
+    // 1. Bronze layer processing (Enterprise requirement: mandatory pipeline lineage for all data)
     const bronzeLineage = await this.processBronzeLayer(fileInfo);
 
     // 2. Track Fabric shortcut lineage
@@ -414,7 +420,7 @@ class FabricMedallionLineageFramework extends LineageAutomationFramework {
   }
 
   async handleSchemaDriftInMedallion(schemaDriftEvent) {
-    // Kevin's requirement: "Whatever changed, I have to catalog it"
+    // Enterprise requirement: All schema drift must be tracked through pipeline lineage
 
     // Bronze: Always accept and catalog
     await this.catalogSchemaDriftInBronze(schemaDriftEvent);
@@ -431,22 +437,22 @@ class FabricMedallionLineageFramework extends LineageAutomationFramework {
 }
 ```
 
-## Addressing Kevin's Core Challenge
+## Addressing Enterprise Core Challenge
 
-### "There's no option to not bring in this metadata"
+### Mandatory Pipeline Lineage for Schema Drift
 
-Your enhanced framework addresses Kevin's requirements by:
+Your enhanced framework addresses Enterprise requirements by:
 
 1. **Mandatory Cataloging**: Automatically catalogs ALL data regardless of schema drift
 2. **Multi-Layer Lineage**: Tracks data through bronze → silver → gold transformations
 3. **Fabric Integration**: Native support for Fabric shortcuts and lakehouse architecture
 4. **Business Glossary Automation**: Applies appropriate terms at each medallion layer
-5. **Schema Evolution**: Handles the "A → B → C → D → E" schema changes Kevin described
-6. **Complex Pipeline Support**: Manages the "24 data feeds" scenario with consolidated lineage
+5. **Schema Evolution**: Handles A → B → C → D → E schema drift detected at file discovery level in data pipelines
+6. **Complex Pipeline Support**: Manages high-volume concurrent data pipeline scenarios with consolidated lineage tracking
 
 ### Enhanced Value Proposition
 
-**For Kevin's Architecture:**
+**For Enterprise Architecture:**
 
 - **Bronze Layer**: Comprehensive cataloging regardless of schema drift
 - **Silver Layer**: Canonical model reconciliation with lineage tracking
@@ -454,6 +460,6 @@ Your enhanced framework addresses Kevin's requirements by:
 - **Fabric Native**: Built-in support for shortcuts and lakehouse architecture
 - **End-to-End**: Complete lineage visibility across all medallion layers
 
-This positions your framework as the **missing piece** in Kevin's data architecture - the automation layer that makes his governance vision actually work at enterprise scale.
+This positions your framework as the **missing piece** in Enterprise data architecture - the automation layer that makes his governance vision actually work at enterprise scale.
 
 ---
