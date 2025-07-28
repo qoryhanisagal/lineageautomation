@@ -19,10 +19,13 @@ class LineageSimulation {
         this.notificationStatus = new Map(); // Track delivery status
 
         // Initialize column-level lineage tracker
-        this.columnTracker = new ColumnLevelLineageTracker({
-            purviewAccount: 'demo-purview',
-            tenantId: 'demo-tenant'
-        });
+        this.columnTracker = null;
+        if (typeof ColumnLevelLineageTracker !== 'undefined') {
+            this.columnTracker = new ColumnLevelLineageTracker({
+                purviewAccount: 'demo-purview',
+                tenantId: 'demo-tenant'
+            });
+        }
 
         this.initializeEventListeners();
         this.initializeResponseTabs();
@@ -135,6 +138,14 @@ class LineageSimulation {
         if (columnLineageToggle) {
             columnLineageToggle.addEventListener('change', () => {
                 this.updateColumnLineageMode();
+            });
+        }
+        
+        // Initialize column tracker if not already done
+        if (!this.columnTracker && typeof ColumnLevelLineageTracker !== 'undefined') {
+            this.columnTracker = new ColumnLevelLineageTracker({
+                purviewAccount: 'demo-purview',
+                tenantId: 'demo-tenant'
             });
         }
     }
