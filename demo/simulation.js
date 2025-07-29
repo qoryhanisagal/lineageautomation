@@ -1,6 +1,6 @@
 // ===================================================================
 // Frontend Simulation Logic for Lineage Automation Framework
-// Professional enterprise demonstration platform
+// Enterprise demonstration platform
 // ===================================================================
 
 class LineageSimulation {
@@ -430,7 +430,7 @@ class LineageSimulation {
     }
 
     initializeBaselineSchemas() {
-        // Healthcare-specific baseline schemas for drift detection
+        // Baseline schemas for drift detection
         return {
             'claims': {
                 version: '2.1',
@@ -745,7 +745,7 @@ class LineageSimulation {
     }
 
     assessColumnSeverity(column, fileType) {
-        // Healthcare-specific severity assessment
+        // Severity assessment
         const criticalKeywords = ['patient_id', 'ssn', 'medical_record', 'diagnosis', 'prescription'];
         const hipaaKeywords = ['name', 'address', 'phone', 'email', 'dob', 'birth'];
         const billingKeywords = ['amount', 'cost', 'charge', 'payment', 'insurance'];
@@ -808,7 +808,7 @@ class LineageSimulation {
         }
     }
 
-    // Notification templates for different channels
+    // Notification for different channels
     generateEmailTemplate(systemName, system, drift, recipientEmail) {
         const severityEmoji = {
             'CRITICAL': '🔴',
@@ -943,16 +943,16 @@ class LineageSimulation {
                     this.log(`🟥 Unexpected drift detected in baseline schema for ${file.fileName}`, 'warning');
                 }
             }
-            
-            await this.delay(200); // Small delay for realism
+
+            await this.delay(200); // Small delay for simulation
         }
         
         if (this.detectedSchemaDrift.length > 0) {
             this.log(`🟢 Schema drift analysis complete: ${this.detectedSchemaDrift.length} drift events detected (post-mapping validation)`, 'warning');
             this.showSchemaDriftSection();
             this.showToast(`Schema drift detected in ${this.detectedSchemaDrift.length} files - Column mappings may need updates`, 'warning');
-            
-            // Phase 3: Notify affected stakeholders
+
+            // Notify affected stakeholders
             this.log('🟣 Initiating stakeholder notification process...', 'info');
             this.notifyAllAffectedStakeholders();
         } else {
@@ -974,7 +974,7 @@ class LineageSimulation {
 
         this.log(`🔵 Stakeholder notification complete: ${totalNotifications} total notifications sent`, 'success');
 
-        // Update the UI with notification summary
+        // UI Notification Summary
         this.updateNotificationStatusUI();
     }
 
@@ -1125,8 +1125,8 @@ class LineageSimulation {
         
         this.log(`🟢 Approved schema change: ${change.column} in ${drift.fileName}`, 'success');
         this.showToast(`Schema change approved: ${change.column}`, 'success');
-        
-        // Mark as resolved and remove from UI
+
+        // Drift changes
         drift.changes[changeIndex].status = 'APPROVED';
         this.populateSchemaDriftActions();
     }
@@ -1167,8 +1167,8 @@ class LineageSimulation {
         });
         
         this.showToast(`Schema drift details logged for ${change.column}`, 'info');
-        
-        // Show stakeholder notification status for this change
+
+        // Show stakeholder notification status for specific change
         this.showNotificationStatus(driftIndex, changeIndex);
     }
 
@@ -1207,14 +1207,14 @@ class LineageSimulation {
         }
     }
 
-    // Phase 3: Enhanced activity feed with stakeholder tracking
+    // Activity feed with stakeholder tracking
     logStakeholderActivity(action, system, recipient, drift) {
         const timestamp = new Date().toLocaleTimeString();
         const activityMessage = `[${timestamp}] 👥 ${action}: ${system} → ${recipient} (${drift.fileName})`;
         
         this.log(activityMessage, 'info');
         
-        // Also add to a separate stakeholder activity log if needed
+        // Stakeholder activity log
         if (!this.stakeholderActivityLog) {
             this.stakeholderActivityLog = [];
         }
@@ -1250,8 +1250,8 @@ class LineageSimulation {
             
             // Count unique affected systems
             const uniqueSystems = new Set(allNotifications.map(n => n.system)).size;
-            
-            // Update UI elements
+
+            // Notification elements
             if (notificationCountElement) {
                 notificationCountElement.textContent = `${totalNotifications} sent`;
             }
@@ -1269,7 +1269,7 @@ class LineageSimulation {
         }
     }
 
-    // Phase 3: Audit trail and compliance reporting
+    // Audit trail and compliance reporting
     generateAuditTrail() {
         const auditReport = {
             timestamp: new Date().toISOString(),
@@ -1335,7 +1335,7 @@ class LineageSimulation {
         this.showToast('Audit trail downloaded for compliance records', 'success');
     }
 
-    // Force schema drift for testing purposes
+    // Test: Force schema drift
     async forceSchemaDrift() {
         if (this.discoveredFiles.length === 0) {
             this.showToast('No files discovered yet - run a directory scan first', 'warning');
@@ -1361,7 +1361,7 @@ class LineageSimulation {
             this.detectedSchemaDrift.push(driftResult);
             this.log(`🟢 Forced drift successful: ${driftResult.changes.length} changes detected`, 'success');
             
-            // Show the drift section and notify stakeholders
+            // Show Drift section and notify stakeholders
             this.showSchemaDriftSection();
             this.showToast(`Schema drift forced: ${driftResult.changes.length} changes detected`, 'warning');
             
@@ -1451,11 +1451,11 @@ class LineageSimulation {
     }
 
     updateApiStatus(status, description) {
-        // Update main status text
+        // API Status Text
         document.getElementById('apiStatus').textContent = status;
         document.getElementById('apiStatusDesc').textContent = description;
-        
-        // Update badge
+
+        // API Status Badge
         const badge = document.getElementById('apiStatusBadge');
         const statusCard = document.getElementById('apiStatusCard');
         const statusTitle = document.getElementById('apiStatusTitle');
@@ -1589,9 +1589,9 @@ class LineageSimulation {
         this.discoveredFiles = this.generateRandomFiles();
         
         this.log(`Scan complete! Found ${this.discoveredFiles.length} new files for processing`, 'success');
-        
-        // Option A: Schema drift detection as part of file discovery
-        this.log('🔍 Analyzing discovered files for schema drift...', 'info');
+
+        // Schema drift detection as part of file discovery
+        this.log('🔘 Analyzing discovered files for schema drift...', 'info');
         this.detectedSchemaDrift = [];
         await this.analyzeFileSchemas();
         
@@ -1632,7 +1632,7 @@ class LineageSimulation {
             this.log('🟧 Column mappings updated with discovered files', 'info');
         }
 
-        // IMPORTANT: Update JSON Generator status to show it's ready
+        // Update JSON Generator status to show it's ready
         document.getElementById('generatorReady').innerHTML = '<i class="fas fa-check-circle text-success mr-2"></i>Ready to generate';
         document.getElementById('generatorReady').classList.remove('text-base-content/70');
         document.getElementById('generatorReady').classList.add('text-success');
@@ -1773,7 +1773,7 @@ class LineageSimulation {
         document.getElementById('jsonPayloadSize').textContent = `${jsonSizeKB} KB`;
         document.getElementById('jsonSize').textContent = `${jsonSizeBytes} bytes`;
 
-        // IMPORTANT: Update Purview Registration status to show it's ready
+        // Purview Registration status to show it's ready
         document.getElementById('purviewReady').innerHTML = '<i class="fas fa-check-circle text-success mr-2"></i>Ready to register';
         document.getElementById('purviewReady').classList.remove('text-base-content/70');
         document.getElementById('purviewReady').classList.add('text-success');
@@ -2014,7 +2014,7 @@ class LineageSimulation {
         this.showToast('Lineage registration completed!', 'success');
         this.log('Lineage relationships now visible in Purview Data Map', 'success');
         
-        // Check if this was part of auto mode
+        // Auto Mode Toggle
         const autoMode = document.getElementById('autoModeToggle').checked;
         if (autoMode) {
             this.log('🟧 Automation pipeline completed successfully!', 'success');
@@ -2032,7 +2032,7 @@ class LineageSimulation {
         this.currentApiResponse = null;
         this.detectedSchemaDrift = [];
         
-        // Phase 3: Reset notification system
+        // Reset notification system
         this.notificationQueue = [];
         this.notificationStatus = new Map();
         this.stakeholderActivityLog = [];
@@ -2073,7 +2073,7 @@ class LineageSimulation {
         // Hide schema drift section
         this.hideSchemaDriftSection();
         
-        // Phase 3: Reset notification status UI
+        // Reset notification status UI
         const notificationStatusElement = document.getElementById('stakeholderNotificationStatus');
         if (notificationStatusElement) {
             notificationStatusElement.style.display = 'none';
