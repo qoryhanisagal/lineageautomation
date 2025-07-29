@@ -463,7 +463,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **Koiree (Sequoyah Dozier)**
 
 LinkedIn: [linkedin.com/in/sequoyahdozier](https://www.linkedin.com/in/sequoyahdozier)
- **All Rights Reserved**
+**All Rights Reserved**
 ## Related Resources
 
 - [Microsoft Purview REST API Documentation](https://docs.microsoft.com/en-us/rest/api/purview/)
@@ -474,4 +474,3 @@ LinkedIn: [linkedin.com/in/sequoyahdozier](https://www.linkedin.com/in/sequoyahd
 
 **Built with care for enterprise data governance at scale**
 
-# lineageautomation
