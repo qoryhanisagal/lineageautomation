@@ -122,7 +122,7 @@ graph TB
 - **Responsive design** optimized for technical presentations
 - **Professional styling** suitable for client demonstrations
 
-## 💼 Healthcare-Specific Implementation
+## Healthcare-Specific Implementation
 
 ### Advanced JSON Payload with Healthcare Context
 
@@ -186,9 +186,9 @@ POST https://{purview-account}.purview.azure.com/datamap/api/atlas/v2/entity/bul
 | `claim_amount`   | `CURRENCY_CONVERSION` | `claim_amount_usd`       | Financial standardization |
 | `diagnosis_code` | `ICD10_VALIDATION`    | `diagnosis_standardized` | Medical coding compliance |
 
-## ⚡ Quick Start Guide
+## Quick Start Guide
 
-### 🎯 Demo Experience (Zero Setup Required)
+### Demo Experience (Zero Setup Required)
 
 **Option 1: Instant Browser Demo**
 
@@ -207,9 +207,9 @@ open index.html  # Or double-click the file
 4. **Toggle "Column Lineage"** → Shows Azure SQL transformation mappings
 5. **"Force Schema Drift"** → Triggers healthcare compliance notifications
 
-### 🏥 Healthcare Demo Scenarios
+### Demo Scenarios
 
-**Pre-loaded Healthcare Data:**
+**Pre-loaded Data:**
 
 - **Claims Processing**: `claims_2024_07_25.csv` with HIPAA transformations
 - **Provider Management**: NPI validation and specialty standardization
@@ -222,7 +222,7 @@ open index.html  # Or double-click the file
 - **Column-level Impact Analysis** for downstream Azure services
 - **Compliance Audit Trail** export functionality
 
-### 🏭 Production Healthcare Implementation
+### Production Healthcare Implementation
 
 **Azure Prerequisites:**
 
@@ -239,7 +239,7 @@ open index.html  # Or double-click the file
 - **Audit logging** enabled for all data access
 - **Encryption at rest** and in transit for all PHI
 
-### 🔧 Production Setup
+### Production Setup
 
 **Step 1: Clone and Install**
 
@@ -463,7 +463,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **Koiree (Sequoyah Dozier)**
 
 LinkedIn: [linkedin.com/in/sequoyahdozier](https://www.linkedin.com/in/sequoyahdozier)
-
+ **All Rights Reserved**
 ## Related Resources
 
 - [Microsoft Purview REST API Documentation](https://docs.microsoft.com/en-us/rest/api/purview/)
